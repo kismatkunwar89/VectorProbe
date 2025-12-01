@@ -1,0 +1,24 @@
+# Python-specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+build/
+dist/
+.venv/
+venv/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+
+# OS-specific
+.DS_Store
+.env
+
+# IDE-specific (if any)
+.vscode/
+.idea/
+
+# Custom for this project
+*.mdc
