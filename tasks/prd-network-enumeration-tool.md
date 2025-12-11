@@ -61,6 +61,9 @@ This document outlines the requirements for a sophisticated network enumeration 
     *   **Unverified Information Section:** A section for probable but unconfirmed details (e.g., "OS version is likely...").
     *   **Command Outputs Section:** A section containing the exact commands executed for the host, each followed by the raw output in a code block.
 
+### User Experience Enhancements
+20. The tool **should** display an ASCII art banner on startup using tools like `figlet`, `toilet`, `lolcat`, or `boxes` to enhance the user experience and provide a professional appearance.
+
 ## 5. Non-Goals (Out of Scope)
 
 *   This tool will **not** actively exploit any discovered vulnerabilities.
@@ -80,6 +83,22 @@ This document outlines the requirements for a sophisticated network enumeration 
 
 *   The Python 3.12 version is a strict requirement.
 *   The application will depend on executing external command-line tools (e.g., `nmap`, `nbtscan`, `enum4linux-ng`) and capturing their standard output. The presence of these tools on the host system is a dependency.
+
+### External Tool Dependencies
+*   The application requires the following external command-line tools to be installed on the host system:
+    *   `nmap` - For network discovery and service enumeration
+    *   `enum4linux-ng` or `enum4linux` - For SMB/NetBIOS enumeration
+    *   `nbtscan` - For NetBIOS name scanning
+    *   Optional: `figlet`, `toilet`, `lolcat`, or `boxes` - For CLI aesthetics
+
+### Error Handling Requirements
+21. The tool **must** gracefully handle and log the following error conditions:
+    *   Network timeouts and unreachable hosts
+    *   Invalid IP addresses or CIDR notation
+    *   Missing external tools (nmap, enum4linux-ng, etc.)
+    *   Permission errors when writing reports
+    *   Malformed DNS responses
+    *   Interrupted scans (Ctrl+C handling)
 
 ## 8. Success Metrics
 

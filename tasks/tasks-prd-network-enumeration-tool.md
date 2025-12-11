@@ -40,6 +40,8 @@
     > *__Why:__ Instead of using `print()` statements for debugging, the `logging` module provides a more powerful way to track events. It allows you to set different severity levels (DEBUG, INFO, ERROR) and control where the output goes, making debugging much easier.*
   - [ ] 1.6 Create the data model `net_enum_tool/models/host.py` to hold host information (IP, OS, services, etc.).
     > *__Why:__ This step involves creating a Python class (like a `Host` class) to act as a structured container for your data. Instead of passing around messy dictionaries, you'll have a clean `host` object with defined attributes (`host.ip`, `host.os`), which improves code readability and maintainability.*
+  - [ ] 1.7 Set up testing framework (unittest or pytest) and create initial test structure.
+    > *__Why:__ Establishing the testing framework early ensures consistent test patterns and makes it easier to implement unit tests as you build each component. This involves creating a `tests/` directory structure and configuring the test runner.*
 
 - [ ] 2.0 **CLI and Input Processing**
   - [ ] 2.1 In `main.py`, implement `argparse` to handle all command-line arguments (`--targets`, `--exclude`, `-o`, `--help`).
