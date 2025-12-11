@@ -45,17 +45,6 @@ This will display the available command-line options and usage examples.
 
 Contributions are welcome! Please see the `contributions.md` file for details on how to contribute to this project.
 
-## License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details.
-
-## Contact
-
-For any questions or inquiries, please contact:
-
-Charles R Barone IV  
-Email: crbarone@newhaven.edu
-
 ---
 
-This README provides a high-level overview of the project, installation instructions, usage, and contact information.
+**Note:** This is an academic project for ethical hacking coursework.
