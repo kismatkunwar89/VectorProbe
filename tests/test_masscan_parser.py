@@ -5,7 +5,7 @@ Tests the MasscanParser class which parses masscan greppable format output.
 """
 
 import pytest
-from parsers.masscan_parser import MasscanParser
+from src.parsers.masscan_parser import MasscanParser
 
 
 @pytest.fixture

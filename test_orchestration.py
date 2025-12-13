@@ -4,11 +4,11 @@ Test orchestration - Demonstrates complete workflow with fixture data.
 This allows testing without real Masscan/Nmap tools.
 """
 
-from parsers.masscan_parser import MasscanParser
-from parsers.nmap_parser import NmapParser
-from models.host_result import HostResult
-from models.enumeration_result import EnumerationResult
-from report.report_generator import generate_report
+from src.parsers.masscan_parser import MasscanParser
+from src.parsers.nmap_parser import NmapParser
+from src.models.host_result import HostResult
+from src.models.enumeration_result import EnumerationResult
+from src.report.report_generator import generate_report
 from datetime import datetime
 import sys
 import os
