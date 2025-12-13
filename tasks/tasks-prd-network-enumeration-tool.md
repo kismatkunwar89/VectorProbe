@@ -36,11 +36,11 @@
   - [x] 1.4 `requirements.txt` created.
   - [x] 1.5 Logging utility created.
   - [x] 1.6 Data models created.
-  - [ ] 1.7 Create a generic utility in `src/utils/shell.py`. (empty - needs work)
+  - [x] 1.7 Create a generic utility in `src/utils/shell.py`.
 
 - [x] 2.0 **CLI, Input, and Test Framework Setup**
   > *__Covered by:__ Gamvirta & Kismat*
-  - [ ] 2.1 Add `--fast-scan` flag to `src/cli/argument_parser.py`.
+  - [x] 2.1 Add `--fast-scan` flag to `src/cli/argument_parser.py`.
   - [x] 2.2 Enhance `src/utils/target_parser.py` for target/exclusion strings.
   - [x] 2.3 Implement the DNS Safety feature.
   - [x] 2.4 **Establish Pytest Framework**
@@ -59,8 +59,7 @@
   > *__Covered by:__ Gamvirta (initial) & Kismat (enhancements)*
   - [x] 4.1 In `src/handlers/nmap_handler.py`, handle either a full scan or a `masscan`-based target list. Ensure XML output.
   - [x] 4.2 In `src/parsers/nmap_parser.py`, parse the Nmap XML.
-  - [ ] 4.3 **Write unit tests in `tests/test_nmap_parser.py` using a sample `nmap.xml` fixture.**
-    > *__To Do:__ Kismat*
+  - [x] 4.3 **Write unit tests in `tests/test_nmap_parser.py` using a sample nmap fixture.**
 
 - [ ] 5.0 **Stage 3: Vulnerability Correlation (Searchsploit)**
   > *__To Do:__ Gamvirta*

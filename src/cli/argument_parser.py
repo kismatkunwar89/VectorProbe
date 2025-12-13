@@ -36,6 +36,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable interactive prompts (DNS safety prompt)."
     )
 
+    parser.add_argument(
+        "--fast-scan",
+        action="store_true",
+        help="Use masscan for fast initial host discovery before nmap."
+    )
+
     return parser
 
 def parse_args(argv=None):
