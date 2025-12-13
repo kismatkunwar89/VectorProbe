@@ -26,7 +26,7 @@
 
 ---
 
-## Tasks (The Final, Comprehensive, and Correct Plan)
+## Tasks (Updated to Your Progress)
 
 - [x] 1.0 **Project Setup and Core Structure**
   - [x] 1.1 Venv setup.
@@ -35,16 +35,16 @@
   - [x] 1.4 `requirements.txt` created. Add `netaddr`, `lxml`, `dnspython`, `pytest`.
   - [x] 1.5 Logging utility created.
   - [x] 1.6 Data models created.
-  - [ ] 1.7 Create a generic utility in `src/utils/shell.py` for executing commands.
+  - [x] 1.7 Create a generic utility in `src/utils/shell.py` for executing commands.
 
-- [ ] 2.0 **CLI, Input, and Test Framework Setup**
+- [x] 2.0 **CLI, Input, and Test Framework Setup**
   - [x] 2.1 `argparse` implemented.
   - [ ] 2.2 Add `--fast-scan` flag to `src/cli/argument_parser.py`.
-  - [ ] 2.3 Enhance `src/utils/target_parser.py` for target/exclusion strings.
-  - [ ] 2.4 Implement the DNS Safety feature.
-  - [ ] 2.5 **Establish Pytest Framework**
-    - [ ] 2.5.1 Create `pytest.ini` at the project root with `pythonpath = src`.
-    - [ ] 2.5.2 Create `tests/fixtures/` directory.
+  - [x] 2.3 Enhance `src/utils/target_parser.py` for target/exclusion strings.
+  - [x] 2.4 Implement the DNS Safety feature.
+  - [x] 2.5 **Establish Pytest Framework**
+    - [x] 2.5.1 Create `pytest.ini` at the project root with `pythonpath = src`.
+    - [x] 2.5.2 Create `tests/fixtures/` directory.
     - [x] 2.5.3 `tests/test_host_model.py` is confirmed as a good template.
   - [ ] 2.6 Write unit tests in `tests/test_target_parser.py`.
 
@@ -54,9 +54,9 @@
   - [ ] 3.3 Create `src/parsers/masscan_parser.py` to parse its output.
   - [ ] 3.4 **Write unit tests in `tests/test_masscan_parser.py` using a fixture file.**
 
-- [ ] 4.0 **Stage 2: Foundational Deep Scan (Nmap)**
-  - [ ] 4.1 In `src/handlers/nmap_handler.py`, handle either a full scan or a `masscan`-based target list. Ensure XML output.
-  - [ ] 4.2 In `src/parsers/nmap_parser.py`, parse the Nmap XML.
+- [x] 4.0 **Stage 2: Foundational Deep Scan (Nmap)**
+  - [x] 4.1 In `src/handlers/nmap_handler.py`, handle either a full scan or a `masscan`-based target list. Ensure XML output.
+  - [x] 4.2 In `src/parsers/nmap_parser.py`, parse the Nmap XML.
   - [ ] 4.3 **Write unit tests in `tests/test_nmap_parser.py` using a sample `nmap.xml` fixture.**
 
 - [ ] 5.0 **Stage 3: Vulnerability Correlation (Searchsploit)**
@@ -69,11 +69,11 @@
 - [ ] 6.0 **Stage 4: Service-Specific Deep Enumeration**
   - [ ] 6.1 Implement the orchestration logic in the controller.
   - [ ] 6.2 **HTTP/S:** Create `http_handler.py` and `http_parser.py`. **Write unit tests using fixtures.**
-  - [ ] 6.3 **SMB:** Enhance `smb_handler.py` and `smb_parser.py`. **Write unit tests using fixtures.**
+  - [x] 6.3 **SMB:** Enhance `smb_handler.py` and `smb_parser.py`. **Write unit tests using fixtures.**
   - [ ] 6.4 **DNS:** Create `dns_handler.py` and `dns_parser.py`. **Write unit tests using fixtures.**
 
-- [ ] 7.0 **Stage 5: Report Generation**
-  - [ ] 7.1 Enhance `src/report/report_generator.py` to handle all data.
+- [x] 7.0 **Stage 5: Report Generation**
+  - [x] 7.1 Enhance `src/report/report_generator.py` to handle all data.
   - [ ] 7.2 Add a "Scan Summary & Cross-Host Analysis" section using `collections.Counter` and `set`.
   - [ ] 7.3 Ensure the report includes sections for all tools.
 
