@@ -1,5 +1,3 @@
-# This file is intentionally left blank.
-
 """
 Test suite for the Network Enumeration Tool.
 

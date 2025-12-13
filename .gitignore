@@ -23,4 +23,5 @@ venv/
 # Custom for this project
 *.mdc
 notes/
+docs/
 
