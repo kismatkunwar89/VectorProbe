@@ -62,6 +62,21 @@
   - [x] 4.1 In `src/handlers/nmap_handler.py`, handle either a full scan or a `masscan`-based target list. Ensure XML output.
   - [x] 4.2 In `src/parsers/nmap_parser.py`, parse the Nmap XML.
   - [x] 4.3 **Write unit tests in `tests/test_nmap_parser.py` using a sample nmap fixture.**
+    > *__Covered by:__ Kismat (17 tests - all passing)*
+
+- [x] **Main Orchestration: Masscan + Nmap + Models + Report**
+  > *__Covered by:__ Kismat*
+  - [x] Wire Masscan execution and display results
+  - [x] Wire Nmap execution (standard mode - no fast-scan)
+  - [x] Wire Nmap execution (fast-scan mode - narrow scope)
+  - [x] Implement `NmapHandler.scan_targets()` method for multi-target scanning
+  - [x] Create HostResult models from parser output
+  - [x] Generate Markdown reports with summary and host details
+  - [x] Implement 4-stage orchestration workflow (Masscan → Nmap → Models → Report)
+  - [x] Add display functions for formatted console output
+  - [x] Complete end-to-end testing with `test_orchestration.py`
+  - [x] All 118 unit tests passing
+  > *__Status:__ COMPLETE - Full pipeline implemented and verified*
 
 - [ ] 5.0 **Stage 3: Vulnerability Correlation (Searchsploit)**
   > *__To Do:__ Gamvirta*
@@ -72,8 +87,8 @@
   - [ ] 5.5 Update data models to store exploit info.
 
 - [ ] 6.0 **Stage 4: Service-Specific Deep Enumeration**
-  - [ ] 6.1 Implement the orchestration logic in the controller.
-    > *__To Do:__ Kismat*
+  - [x] 6.1 Implement the orchestration logic in the controller.
+    > *__Covered by:__ Kismat (Main 4-stage orchestration implemented)*
   - [ ] 6.2 **HTTP/S Enumeration:**
     > *__To Do:__ Kismat*
     - [ ] 6.2.1 Create `http_handler.py` and `http_parser.py`.

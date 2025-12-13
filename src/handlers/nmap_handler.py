@@ -1,6 +1,6 @@
-#nmap
-#requests
-#pyyaml
+# nmap
+# requests
+# pyyaml
 
 """
 nmap_handler.py
@@ -115,6 +115,30 @@ class NmapHandler:
     # ---------------------------
     @validate_ip
     @timing
+    def scan_targets(self, targets: str) -> CommandResult:
+        """
+        Scan targets using standard service enumeration.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+                    Examples: "192.168.1.1" or "192.168.1.0/24" or "192.168.1.1,192.168.1.2"
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        cmd = [
+            "nmap",
+            "-sS",      # TCP SYN scan (half-open)
+            "-sV",      # Version detection
+            "-sC",      # Default safe scripts
+            "-O",       # OS detection
+            "-Pn",      # Skip ping (useful in restricted networks)
+            targets
+        ]
+        return self._run(cmd)
+
+    @validate_ip
+    @timing
     def tcp_default_scan(self, ip: str) -> CommandResult:
         """
         General enumeration scan:
@@ -142,7 +166,8 @@ class NmapHandler:
         """
         Windows SMB enumeration (port 445) using safe NSE scripts.
         """
-        cmd = ["nmap", "-p", "445", "--script", "smb-enum-shares,smb-enum-users", "-Pn", ip]
+        cmd = ["nmap", "-p", "445", "--script",
+               "smb-enum-shares,smb-enum-users", "-Pn", ip]
         return self._run(cmd)
 
     @validate_ip
