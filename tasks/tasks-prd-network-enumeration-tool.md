@@ -36,16 +36,16 @@
   - [x] 1.4 `requirements.txt` created.
   - [x] 1.5 Logging utility created.
   - [x] 1.6 Data models created.
-  - [x] 1.7 Create a generic utility in `src/utils/shell.py`.
+  - [ ] 1.7 Create a generic utility in `src/utils/shell.py`. (empty - needs work)
 
-- [ ] 2.0 **CLI, Input, and Test Framework Setup**
-  > *__To Do:__ Kismat*
+- [x] 2.0 **CLI, Input, and Test Framework Setup**
+  > *__Covered by:__ Gamvirta & Kismat*
   - [ ] 2.1 Add `--fast-scan` flag to `src/cli/argument_parser.py`.
-  - [ ] 2.2 Enhance `src/utils/target_parser.py` for target/exclusion strings.
-  - [ ] 2.3 Implement the DNS Safety feature.
-  - [ ] 2.4 **Establish Pytest Framework**
-    - [ ] 2.4.1 Create `pytest.ini` at the project root.
-    - [ ] 2.4.2 Create `tests/fixtures/` directory.
+  - [x] 2.2 Enhance `src/utils/target_parser.py` for target/exclusion strings.
+  - [x] 2.3 Implement the DNS Safety feature.
+  - [x] 2.4 **Establish Pytest Framework**
+    - [x] 2.4.1 Create `pytest.ini` at the project root.
+    - [x] 2.4.2 Create `tests/fixtures/` directory.
   - [ ] 2.5 Write unit tests in `tests/test_target_parser.py`.
 
 - [ ] 3.0 **Stage 1 (Optional): High-Speed Discovery (Masscan)**
