@@ -46,7 +46,8 @@
   - [x] 2.4 **Establish Pytest Framework**
     - [x] 2.4.1 Create `pytest.ini` at the project root.
     - [x] 2.4.2 Create `tests/fixtures/` directory.
-  - [ ] 2.5 Write unit tests in `tests/test_target_parser.py`.
+  - [x] 2.5 Write unit tests in `tests/test_target_parser.py`.
+    > *__Covered by:__ Kismat (29 tests - all passing)*
 
 - [ ] 3.0 **Stage 1 (Optional): High-Speed Discovery (Masscan)**
   > *__To Do:__ Kismat*
@@ -98,7 +99,8 @@
   - [ ] 8.2 Write `contributions.md` and `limitations.md`.
   - [ ] 8.3 Generate sample reports.
 
-- [ ] 9.0 **CLI User Experience Enhancements**
-  > *__To Do:__ Kismat*
-  - [ ] 9.1 Implement an ASCII art banner.
+- [x] 9.0 **CLI User Experience Enhancements**
+  > *__Covered by:__ Kismat*
+  - [x] 9.1 Implement an ASCII art banner.
+    > *__Covered by:__ Kismat (Created `src/utils/banner.py` with VectorProbe ASCII art)*
 

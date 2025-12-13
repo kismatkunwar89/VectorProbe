@@ -22,6 +22,9 @@ import subprocess
 from dataclasses import dataclass
 from typing import List, Optional
 
+# Import custom decorators
+from utils.decorators import validate_ip, timing, retry
+
 
 @dataclass
 class CommandResult:
@@ -110,6 +113,8 @@ class NmapHandler:
     # ---------------------------
     # Public scan methods
     # ---------------------------
+    @validate_ip
+    @timing
     def tcp_default_scan(self, ip: str) -> CommandResult:
         """
         General enumeration scan:
@@ -122,6 +127,8 @@ class NmapHandler:
         cmd = ["nmap", "-sS", "-sV", "-sC", "-O", "-Pn", ip]
         return self._run(cmd)
 
+    @validate_ip
+    @timing
     def traceroute_scan(self, ip: str) -> CommandResult:
         """
         Topology mapping / traceroute via nmap.
@@ -129,6 +136,8 @@ class NmapHandler:
         cmd = ["nmap", "--traceroute", "-Pn", ip]
         return self._run(cmd)
 
+    @validate_ip
+    @timing
     def smb_enum_scan(self, ip: str) -> CommandResult:
         """
         Windows SMB enumeration (port 445) using safe NSE scripts.
@@ -136,6 +145,8 @@ class NmapHandler:
         cmd = ["nmap", "-p", "445", "--script", "smb-enum-shares,smb-enum-users", "-Pn", ip]
         return self._run(cmd)
 
+    @validate_ip
+    @timing
     def netbios_enum_scan(self, ip: str) -> CommandResult:
         """
         Windows NetBIOS enumeration using nbstat script.

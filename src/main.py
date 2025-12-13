@@ -8,6 +8,7 @@ arguments, and kicks off the enumeration process.
 
 import logging
 from utils.logger import setup_logging
+from utils.banner import print_banner
 
 
 def main():
@@ -15,24 +16,18 @@ def main():
     Main function - the starting point of our program.
 
     This function:
-    1. Sets up logging
-    2. Displays a welcome message
+    1. Displays the ASCII banner
+    2. Sets up logging
     3. Will later parse arguments and start scanning
     """
+    # Display the ASCII art banner
+    print_banner(version="1.0.0")
+
     # Set up logging (INFO level means we see INFO, WARNING, ERROR, CRITICAL)
     logger = setup_logging(logging.INFO)
 
-    # Log some messages at different levels
-    logger.info("=" * 60)
-    logger.info("Network Enumeration Tool - Starting Up")
-    logger.info("=" * 60)
-
-    logger.debug("This is a debug message - only shows if DEBUG level is set")
-    logger.info("This is an info message - normal operation")
-    logger.warning("This is a warning - something unexpected")
-    logger.error("This is an error - something failed")
-
-    logger.info("Initialization complete!")
+    # Log initialization
+    logger.info("Initialization complete - Ready for enumeration")
 
 
 if __name__ == "__main__":
