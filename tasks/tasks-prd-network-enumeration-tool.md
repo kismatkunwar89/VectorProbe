@@ -49,12 +49,13 @@
   - [x] 2.5 Write unit tests in `tests/test_target_parser.py`.
     > *__Covered by:__ Kismat (29 tests - all passing)*
 
-- [ ] 3.0 **Stage 1 (Optional): High-Speed Discovery (Masscan)**
-  > *__To Do:__ Kismat*
-  - [ ] 3.1 In your controller, check if the `--fast-scan` flag is present.
-  - [ ] 3.2 Create `src/handlers/masscan_handler.py` to run `masscan`.
-  - [ ] 3.3 Create `src/parsers/masscan_parser.py` to parse its output.
-  - [ ] 3.4 **Write unit tests in `tests/test_masscan_parser.py` using a fixture file.**
+- [x] 3.0 **Stage 1 (Optional): High-Speed Discovery (Masscan)**
+  > *__Covered by:__ Kismat*
+  - [x] 3.1 In your controller, check if the `--fast-scan` flag is present.
+  - [x] 3.2 Create `src/handlers/masscan_handler.py` to run `masscan`.
+  - [x] 3.3 Create `src/parsers/masscan_parser.py` to parse its output.
+  - [x] 3.4 **Write unit tests in `tests/test_masscan_parser.py` using a fixture file.**
+    > *__Covered by:__ Kismat (31 tests - all passing)*
 
 - [x] 4.0 **Stage 2: Foundational Deep Scan (Nmap)**
   > *__Covered by:__ Gamvirta (initial) & Kismat (enhancements)*

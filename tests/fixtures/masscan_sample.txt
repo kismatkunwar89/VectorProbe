@@ -1,0 +1,6 @@
+# masscan version 1.0.5; options: -p0-65535 --rate=1000000
+Host: 192.168.1.100 Ports: 80/open/tcp, 443/open/tcp, 3389/open/tcp, 8080/open/tcp, 22/open/tcp, 23/open/tcp, 135/open/tcp, 139/open/tcp
+Host: 192.168.1.101 Ports: 22/open/tcp, 23/open/tcp
+Host: 192.168.1.102 Ports: 445/open/tcp
+Host: 192.168.1.103 Ports:
+Host: 192.168.1.104 Ports: 80/open/tcp, 443/open/tcp, 8443/open/tcp, 3000/open/tcp, 5000/open/tcp, 9000/open/tcp, 27017/open/tcp, 6379/open/tcp
