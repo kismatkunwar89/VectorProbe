@@ -78,13 +78,15 @@
   - [x] All 118 unit tests passing
   > *__Status:__ COMPLETE - Full pipeline implemented and verified*
 
-- [ ] 5.0 **Stage 3: Vulnerability Correlation (Searchsploit)**
-  > *__To Do:__ Gamvirta*
-  - [ ] 5.1 In the controller, call the vulnerability handler for each service.
-  - [ ] 5.2 Create `src/handlers/vulnerability_handler.py` to run `searchsploit --json`.
-  - [ ] 5.3 Create `src/parsers/vulnerability_parser.py` to parse the JSON.
-  - [ ] 5.4 **Write unit tests in `tests/test_vulnerability_parser.py` using a sample `searchsploit.json` fixture.**
-  - [ ] 5.5 Update data models to store exploit info.
+- [x] 5.0 **Stage 3: Vulnerability Correlation (Searchsploit)**
+  > *__Covered by:__ Gamvirta*
+  - [x] 5.1 In the controller, call the vulnerability handler for each service.
+  - [x] 5.2 Create `src/handlers/vulnerability_handler.py` to run `searchsploit --json`.
+  - [x] 5.3 Create `src/parsers/vulnerability_parser.py` to parse the JSON.
+  - [x] 5.4 **Write unit tests in `tests/test_vulnerability_parser.py` using a sample `searchsploit.json` fixture.**
+    > *__Covered by:__ Gamvirta (1 test - passing)*
+  - [x] 5.5 Update data models to store exploit info.
+    > *__Covered by:__ Gamvirta (ServiceResult.exploits field added)*
 
 - [ ] 6.0 **Stage 4: Service-Specific Deep Enumeration**
   - [x] 6.1 Implement the orchestration logic in the controller.
