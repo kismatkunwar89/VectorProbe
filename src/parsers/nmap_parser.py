@@ -33,6 +33,10 @@ class NmapParser:
             if not line.strip() or line.startswith('#') or line.startswith('Starting') or line.startswith('Nmap'):
                 continue
 
+            # Skip Nmap header lines
+            if any(line.startswith(skip) for skip in ['Not shown:', 'Host is up', 'MAC Address:', 'Network Distance:', 'No exact OS', 'OS and Service', 'TCP/IP fingerprint:', 'OS:', 'SEQ(', 'OPS(', 'WIN(', 'ECN(', 'T1(', 'T2(', 'T3(', 'T4(', 'T5(', 'T6(', 'T7(', 'U1(', 'IE(', 'Nmap done']):
+                continue
+
             # Detect host line: "Nmap scan report for 192.168.1.1"
             if 'Nmap scan report for' in line:
                 if current_host is not None and current_host.get('host'):
@@ -48,7 +52,8 @@ class NmapParser:
                     }
 
             # Detect port lines: "22/tcp  open   ssh"
-            elif current_host and '/' in line and ('tcp' in line or 'udp' in line):
+            # Port lines start with a digit (the port number)
+            elif current_host and line[0].isdigit() and '/' in line and ('tcp' in line or 'udp' in line):
                 parts = line.split()
                 if len(parts) >= 2:
                     port_protocol = parts[0]  # e.g., "22/tcp"
