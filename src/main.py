@@ -203,6 +203,7 @@ def main():
     masscan_hosts = []
     nmap_targets = args.targets
     scan_mode = "standard"
+    command_outputs = []  # Track all executed commands
 
     # ============================================================
     # STAGE 1: Fast Discovery (Masscan) - Optional
@@ -228,6 +229,13 @@ def main():
             logger.info(f"[+] Masscan exit code: {result.exit_code}")
 
             if result.exit_code == 0 and result.stdout:
+                # Track command output
+                command_outputs.append({
+                    'tool': 'Masscan',
+                    'command': result.command,
+                    'output': result.stdout
+                })
+
                 # Parse Masscan output
                 parser = MasscanParser(result.stdout)
                 masscan_hosts = parser.parse()
@@ -282,6 +290,13 @@ def main():
         logger.info(f"[+] Nmap exit code: {result.exit_code}")
 
         if result.exit_code == 0 and result.stdout:
+            # Track command output
+            command_outputs.append({
+                'tool': 'Nmap',
+                'command': result.command,
+                'output': result.stdout
+            })
+
             # Parse Nmap output
             parser = NmapParser(result.stdout)
             parser.parse()
@@ -332,6 +347,14 @@ def main():
                     logger.info(f"[*] Running SMB enumeration on {ip}...")
                     result = smb.enumerate_target(ip)
                     if result.exit_code == 0:
+                        # Track command output
+                        command_outputs.append({
+                            'tool': 'Enum4linux-ng',
+                            'command': result.command,
+                            'output': result.stdout,
+                            'target': ip
+                        })
+
                         parser = SMBParser()
                         smb_results[ip] = parser.parse(result.stdout)
                         logger.info(f"[+] SMB enumeration successful for {ip}")
@@ -359,7 +382,8 @@ def main():
 
     try:
         # Generate and save report
-        generate_report(enumeration_result.hosts, output_file, smb_results)
+        generate_report(enumeration_result.hosts, output_file,
+                        smb_results, command_outputs)
         logger.info(f"[+] Report saved to: {output_file}")
 
         # Display success message

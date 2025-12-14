@@ -63,7 +63,7 @@ def format_smb_section(smb_data):
     return output
 
 
-def generate_report(enumeration_results, output_file, smb_results=None):
+def generate_report(enumeration_results, output_file, smb_results=None, command_outputs=None):
     """
     Generates a Markdown report based on the enumeration results.
 
@@ -71,6 +71,7 @@ def generate_report(enumeration_results, output_file, smb_results=None):
         enumeration_results (dict): A dictionary containing enumeration results for each host.
         output_file (str): The path to the output file where the report will be saved.
         smb_results (dict): Optional SMB enumeration results keyed by IP address.
+        command_outputs (list): Optional list of executed commands and their outputs.
     """
     with open(output_file, 'w') as file:
         # Write header
@@ -127,6 +128,34 @@ def generate_report(enumeration_results, output_file, smb_results=None):
                 file.write("\n")
 
             file.write("---\n\n")
+
+        # Command outputs section
+        if command_outputs:
+            file.write("## Command Outputs\n\n")
+            file.write(
+                "All commands executed during the enumeration process:\n\n")
+
+            for idx, cmd_info in enumerate(command_outputs, 1):
+                tool = cmd_info.get('tool', 'Unknown')
+                command = cmd_info.get('command', '')
+                output = cmd_info.get('output', '')
+                target = cmd_info.get('target', '')
+
+                # Write command info
+                if target:
+                    file.write(f"### {idx}. {tool} - Target: {target}\n\n")
+                else:
+                    file.write(f"### {idx}. {tool}\n\n")
+
+                file.write(f"**Command:** `{command}`\n\n")
+                file.write("**Output:**\n\n")
+                file.write("```\n")
+                # Limit output to 5000 chars per command
+                file.write(output[:5000])
+                if len(output) > 5000:
+                    file.write(
+                        f"\n... (output truncated, {len(output)} total characters) ...\n")
+                file.write("\n```\n\n")
 
         # Footer
         file.write("## Notes\n\n")
