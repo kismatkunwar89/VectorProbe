@@ -11,12 +11,17 @@ class NmapParser:
 
     def parse(self):
         """Parse both real Nmap output and custom format"""
-        # Check if this is custom format (has "Host:" lines) or real Nmap output
-        if 'Host:' in self.nmap_output and not 'Starting Nmap' in self.nmap_output:
+        # Prefer the real Nmap parser whenever we see genuine output
+        # (identified by the "Nmap scan report for" banner).
+        if 'Nmap scan report for' in self.nmap_output:
+            logger.info("[PARSER] Detected REAL NMAP format")
+            self._parse_real_nmap_format()
+        elif 'Host:' in self.nmap_output:
             logger.info("[PARSER] Detected CUSTOM format")
             self._parse_custom_format()
         else:
-            logger.info("[PARSER] Detected REAL NMAP format")
+            # Default to the real parser when unsure so we still harvest data
+            logger.info("[PARSER] Defaulting to REAL NMAP format")
             self._parse_real_nmap_format()
         logger.info(f"[PARSER] Total hosts found: {len(self.hosts)}")
 

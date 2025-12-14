@@ -2,6 +2,45 @@ import os
 from datetime import datetime
 
 
+def _normalize_service_entry(service):
+    """Return a consistent structure for report rendering."""
+    if isinstance(service, dict):
+        port = service.get('port', '-')
+        protocol = service.get('protocol', '-')
+        name = service.get('service_name') or f"port-{port}"
+        product = service.get('product')
+        version = service.get('version')
+        fingerprint = " ".join(
+            [str(value).strip() for value in [product, version] if value])
+        exploits = service.get('exploits') or []
+    else:
+        port = '-'
+        protocol = '-'
+        name = str(service)
+        fingerprint = ''
+        exploits = []
+
+    protocol_str = str(protocol).lower()
+    display = name
+    if port not in (None, '-') and protocol_str:
+        display = f"{name} ({port}/{protocol_str})"
+
+    return {
+        'name': name,
+        'port': port if port is not None else '-',
+        'protocol': protocol_str or '-',
+        'fingerprint': fingerprint or 'Unknown',
+        'exploits': exploits,
+        'display': display,
+        'exploit_summary': f"{len(exploits)} found" if exploits else 'None'
+    }
+
+
+def _service_display_list(services):
+    entries = [_normalize_service_entry(s) for s in services]
+    return [entry['display'] for entry in entries]
+
+
 def format_smb_section(smb_data):
     """
     Format SMB enumeration data as Markdown section.
@@ -98,11 +137,11 @@ def format_topology_section(enumeration_results):
             hostname = data.get('hostname', 'N/A')
             services = data.get('services', [])
 
-            # Format services (show first 3, truncate if more)
-            if services:
-                service_str = ', '.join(services[:3])
-                if len(services) > 3:
-                    service_str += f"... (+{len(services) - 3})"
+            normalized_services = _service_display_list(services)
+            if normalized_services:
+                service_str = ', '.join(normalized_services[:3])
+                if len(normalized_services) > 3:
+                    service_str += f"... (+{len(normalized_services) - 3})"
                 status = "🟢 Online"
             else:
                 service_str = "None"
@@ -162,14 +201,35 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
             # Services
             file.write("#### Active Services\n\n")
             services = result.get('services', [])
-            if services:
-                file.write("| Service |\n")
-                file.write("|----------|\n")
-                for service in services:
-                    file.write(f"| {service} |\n")
+            normalized_services = [_normalize_service_entry(s)
+                                   for s in services]
+            if normalized_services:
+                file.write("| Port | Protocol | Service | Fingerprint | Exploits |\n")
+                file.write("|------|----------|---------|-------------|----------|\n")
+                for service in normalized_services:
+                    file.write(
+                        f"| {service['port']} | {service['protocol']} | {service['name']} | {service['fingerprint']} | {service['exploit_summary']} |\n")
+                file.write("\n")
+
+                for service in normalized_services:
+                    exploits = service['exploits']
+                    if not exploits:
+                        continue
+                    file.write(
+                        f"**Exploits for {service['name']} ({len(exploits)})**\n\n")
+                    for exploit in exploits:
+                        title = exploit.get('title') or 'Unnamed exploit'
+                        edb_id = exploit.get('edb_id')
+                        path = exploit.get('path')
+                        descriptor = title
+                        if edb_id:
+                            descriptor += f" [EDB-{edb_id}]"
+                        if path:
+                            descriptor += f" – {path}"
+                        file.write(f"- {descriptor}\n")
+                    file.write("\n")
             else:
-                file.write("No services detected.\n")
-            file.write("\n")
+                file.write("No services detected.\n\n")
 
             # SMB results if available
             if smb_results and host_ip in smb_results:
