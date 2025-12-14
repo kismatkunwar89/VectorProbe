@@ -32,6 +32,7 @@ class NmapParser:
         """Parse real Nmap normal output format (-oN -)"""
         lines = self.nmap_output.strip().split('\n')
         logger.info(f"[PARSER] Processing {len(lines)} lines of Nmap output")
+        logger.info(f"[PARSER] First 200 chars of output:\n{self.nmap_output[:200]}")
 
         current_host = None
 
@@ -47,6 +48,7 @@ class NmapParser:
 
             # Detect host line: "Nmap scan report for 192.168.1.1"
             if 'scan report for' in stripped.lower():
+                logger.info(f"[PARSER] *** FOUND HOST LINE at {i}: {stripped[:80]}")
                 if current_host is not None and current_host.get('host'):
                     self.hosts.append(current_host)
                     logger.info(
