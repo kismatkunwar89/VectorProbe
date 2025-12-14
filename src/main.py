@@ -102,10 +102,14 @@ def populate_host_results(nmap_hosts):
     for host_data in nmap_hosts:
         ip = host_data.get('ip') or host_data.get('host')
         os_type = host_data.get('os', 'Unknown')
+        hostname = host_data.get('hostname')
+        domain = host_data.get('domain')
 
         # Create HostResult
         host = HostResult(
             ip_address=ip,
+            hostname=hostname,
+            domain=domain,
             os_type=os_type
         )
 
