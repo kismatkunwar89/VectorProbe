@@ -222,6 +222,31 @@ Nmap done: 2 IP addresses (2 hosts up) scanned in 7.42 seconds
         assert second_host['ip'] == '10.248.1.1'
         assert second_host['ports'] == ['443/tcp/open/https']
 
+    def test_real_output_service_metadata(self):
+        """Ensure service fingerprint/versions are captured for real output."""
+        nmap_output = """# Nmap 7.95 scan initiated Sun Dec 14 13:08:43 2025 as: /usr/lib/nmap/nmap -sS -sV -sC -O -Pn -oN - 10.248.1.1
+Nmap scan report for demo-host (10.0.0.5)
+Host is up (0.00018s latency).
+Not shown: 998 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.9p1 Debian 3 (protocol 2.0)
+53/tcp open  domain  dnsmasq 2.90
+MAC Address: F0:DB:30:76:EE:EB (Yottabyte)
+"""
+
+        parser = NmapParser(nmap_output)
+        parser.parse()
+
+        host = parser.hosts[0]
+        services = host.get('services', [])
+        assert services, "Expected services metadata to be captured"
+
+        ssh_service = next((s for s in services if s.get('port') == 22), None)
+        assert ssh_service is not None
+        assert ssh_service['name'] == 'ssh'
+        assert ssh_service.get('product', '').startswith('OpenSSH')
+        assert ssh_service.get('version') == '8.9'
+
 
 class TestNmapParserEdgeCases:
     """Test edge cases and error conditions."""

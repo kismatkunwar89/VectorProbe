@@ -7,6 +7,7 @@ arguments, and kicks off the enumeration process.
 """
 
 import logging
+import re
 import sys
 from datetime import datetime
 from utils.logger import setup_logging
@@ -22,7 +23,12 @@ from models.host_result import HostResult
 from models.enumeration_result import EnumerationResult
 from report.report_generator import generate_report
 from handlers.vulnerability_handler import VulnerabilityHandler
-from parsers.vulnerability_parser import parse_searchsploit_json
+from parsers.vulnerability_parser import (
+    parse_searchsploit_json,
+    extract_search_keywords
+)
+
+MAX_EXPLOITS_PER_SERVICE = 5
 
 
 def display_masscan_results(hosts_data):
@@ -87,6 +93,9 @@ def display_nmap_results(hosts_data):
 def populate_host_results(nmap_hosts):
     """Convert Nmap parser output to HostResult objects."""
     enumeration_result = EnumerationResult()
+    vuln_handler = VulnerabilityHandler(timeout_sec=15)
+    search_cache = {}
+    searchsploit_available = True
 
     for host_data in nmap_hosts:
         ip = host_data.get('ip') or host_data.get('host')
@@ -142,19 +151,94 @@ def populate_host_results(nmap_hosts):
             # Build search query from service label + fingerprint fields
             fingerprint = " ".join(
                 [str(value).strip() for value in [product, version] if value])
-            query = f"{service_label} {fingerprint}".strip()
 
+            # Build smart searchsploit query based on product/version
+            # Combines real protocol/product with vendor/version tokens
+            # No quotes needed - searchsploit -t handles multi-word matching
+            def build_searchsploit_query(service: str, fp: str) -> str:
+                """Build optimized searchsploit query from service and fingerprint."""
+                fp_lower = (fp or '').lower()
+
+                # Extract version from fingerprint (e.g., "8.9p1" -> "8.9")
+                version_match = re.search(r'(\d+\.\d+)', fp or '')
+                ver = version_match.group(1) if version_match else ''
+
+                # Extract Windows version if present (e.g., "2016", "2019", "10")
+                win_ver_match = re.search(
+                    r'Windows\s+(?:Server\s+)?(\d+)', fp or '', re.IGNORECASE)
+                win_ver = win_ver_match.group(1) if win_ver_match else ''
+
+                # Service-specific query building (no quotes, searchsploit -t handles it)
+                if service == 'microsoft-ds':
+                    return f'smb windows {win_ver}' if win_ver else 'smb windows'
+                elif service == 'ms-wbt-server':
+                    return 'rdp windows'
+                elif service == 'kerberos-sec':
+                    return 'kerberos windows'
+                elif service == 'ldap':
+                    return 'ldap windows' if 'windows' in fp_lower else 'ldap'
+                elif service == 'msrpc':
+                    return 'microsoft rpc'
+                elif 'openssh' in fp_lower:
+                    # Use major.minor version for better matching
+                    return f'openssh {ver}' if ver else 'openssh'
+                elif 'dnsmasq' in fp_lower:
+                    return 'dnsmasq'  # Version filtering handles specifics
+                elif 'postgresql' in fp_lower:
+                    return f'postgresql {ver}' if ver else 'postgresql'
+                elif 'simple dns' in fp_lower:
+                    return 'Simple DNS Plus'
+                elif 'httpapi' in fp_lower:
+                    return 'httpapi'  # Generic, often 0 results
+                elif 'apache' in fp_lower:
+                    return f'apache {ver}' if ver else 'apache httpd'
+                elif 'nginx' in fp_lower:
+                    return f'nginx {ver}' if ver else 'nginx'
+                elif 'iis' in fp_lower:
+                    return f'iis {ver}' if ver else 'Microsoft IIS'
+                elif fp and not re.match(r'^(Windows|Microsoft|Linux|Ubuntu)', fp, re.IGNORECASE):
+                    # Use fingerprint directly if it's a product (not OS info)
+                    parts = fp.split()[:3]
+                    return ' '.join(parts)
+                else:
+                    # Skip generic service labels without product info
+                    return ''
+
+            query_string = build_searchsploit_query(service_label, fingerprint)
+            keyword_basis = " ".join(
+                [value for value in [service_label, fingerprint] if value])
+            keywords = extract_search_keywords(keyword_basis)
+
+            should_lookup = bool(query_string and keywords)
+            if should_lookup and not fingerprint and service_label:
+                normalized_label = service_label.lower()
+                unique_keywords = set(keywords)
+                if len(unique_keywords) == 1 and normalized_label in unique_keywords:
+                    should_lookup = False
             exploits = []
-            if query:
-                try:
-                    vuln_handler = VulnerabilityHandler(timeout_sec=15)
-                    ss_result = vuln_handler.run_searchsploit_json(query)
-                    if ss_result.exit_code == 0:
-                        # Pass query so parser can filter by version relevance
-                        exploits = parse_searchsploit_json(
-                            ss_result.raw_json, query)
-                except Exception:
-                    exploits = []
+            if should_lookup and searchsploit_available:
+                cache_key = (query_string.lower(), tuple(keywords))
+                if cache_key in search_cache:
+                    exploits = search_cache[cache_key]
+                else:
+                    try:
+                        ss_result = vuln_handler.run_searchsploit_json(
+                            query_string)
+                        if ss_result.exit_code == 0:
+                            exploits = parse_searchsploit_json(
+                                ss_result.raw_json,
+                                query=query_string,
+                                keywords=keywords
+                            )
+                        search_cache[cache_key] = exploits
+                    except RuntimeError:
+                        searchsploit_available = False
+                        search_cache[cache_key] = []
+                    except Exception:
+                        search_cache[cache_key] = []
+
+            if exploits:
+                exploits = exploits[:MAX_EXPLOITS_PER_SERVICE]
 
             host.add_service(
                 service_name=service_label,

@@ -79,6 +79,7 @@ class NmapParser:
                         'host': host_text,
                         'ip': ip_value or host_text,
                         'ports': [],
+                        'services': [],
                         'os': 'Unknown'
                     }
                     logger.info(f"[PARSER] Found host: {current_host['host']}")
@@ -111,6 +112,40 @@ class NmapParser:
                             f"{port_protocol}/{state}/{service}")
                         logger.info(
                             f"[PARSER] ✓ Added port: {port_protocol}/{state}/{service}")
+
+                        # Capture extended service fingerprint information
+                        port_value = None
+                        protocol = None
+                        if '/' in port_protocol:
+                            try:
+                                port_part, protocol = port_protocol.split('/', 1)
+                            except ValueError:
+                                port_part = port_protocol
+                                protocol = 'tcp'
+                        else:
+                            port_part = port_protocol
+                            protocol = 'tcp'
+
+                        try:
+                            port_value = int(port_part)
+                        except ValueError:
+                            port_value = None
+
+                        fingerprint = " ".join(parts[3:]) if len(parts) > 3 else ''
+                        service_entry = {
+                            'port': port_value if port_value is not None else port_part,
+                            'protocol': protocol,
+                            'state': state,
+                            'name': service,
+                        }
+
+                        if fingerprint:
+                            service_entry['product'] = fingerprint
+                            version_match = re.search(r'\d+(?:\.\d+)+', fingerprint)
+                            if version_match:
+                                service_entry['version'] = version_match.group(0)
+
+                        current_host.setdefault('services', []).append(service_entry)
 
             # Skip lines starting with pipe (| from NSE scripts output)
             elif stripped.startswith('|'):
