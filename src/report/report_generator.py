@@ -2,13 +2,75 @@ import os
 from datetime import datetime
 
 
-def generate_report(enumeration_results, output_file):
+def format_smb_section(smb_data):
+    """
+    Format SMB enumeration data as Markdown section.
+
+    Args:
+        smb_data (dict): SMB enumeration results with domain, users, shares, etc.
+
+    Returns:
+        str: Formatted Markdown section
+    """
+    if not smb_data:
+        return ""
+
+    output = "#### SMB Enumeration\n\n"
+
+    # Domain info
+    domain = smb_data.get("domain")
+    if domain:
+        output += f"**Domain:** {domain}\n\n"
+
+    # OS info
+    os_info = smb_data.get("os_info")
+    if os_info:
+        output += f"**OS:** {os_info}\n\n"
+
+    # Null session
+    null_session = smb_data.get("null_session", False)
+    output += f"**Null Sessions:** {'ALLOWED ⚠️' if null_session else 'Disabled'}\n\n"
+
+    # Users
+    users = smb_data.get("users", [])
+    if users:
+        output += "**Users:**\n"
+        for user in users:
+            output += f"- {user}\n"
+        output += "\n"
+
+    # Shares
+    shares = smb_data.get("shares", [])
+    if shares:
+        output += "**Shares:**\n"
+        output += "| Name | Type | Comment |\n"
+        output += "|------|------|----------|\n"
+        for share in shares:
+            name = share.get("name", "?")
+            share_type = share.get("type", "?")
+            comment = share.get("comment", "")
+            output += f"| {name} | {share_type} | {comment} |\n"
+        output += "\n"
+
+    # Groups
+    groups = smb_data.get("groups", [])
+    if groups:
+        output += "**Groups:**\n"
+        for group in groups:
+            output += f"- {group}\n"
+        output += "\n"
+
+    return output
+
+
+def generate_report(enumeration_results, output_file, smb_results=None):
     """
     Generates a Markdown report based on the enumeration results.
 
     Args:
         enumeration_results (dict): A dictionary containing enumeration results for each host.
         output_file (str): The path to the output file where the report will be saved.
+        smb_results (dict): Optional SMB enumeration results keyed by IP address.
     """
     with open(output_file, 'w') as file:
         # Write header
@@ -19,7 +81,10 @@ def generate_report(enumeration_results, output_file):
         # Write summary
         file.write("## Summary\n\n")
         file.write(f"- **Total Hosts:** {len(enumeration_results)}\n")
-        file.write(f"- **Scan Type:** Masscan + Nmap\n\n")
+        file.write(f"- **Scan Type:** Masscan + Nmap\n")
+        if smb_results:
+            file.write(f"- **SMB Enumeration:** Enabled\n")
+        file.write("\n")
 
         # Write detailed host information
         file.write("## Discovered Hosts\n\n")
@@ -47,6 +112,11 @@ def generate_report(enumeration_results, output_file):
             else:
                 file.write("No services detected.\n")
             file.write("\n")
+
+            # SMB results if available
+            if smb_results and host_ip in smb_results:
+                smb_section = format_smb_section(smb_results[host_ip])
+                file.write(smb_section)
 
             # Unverified info
             unverified = result.get('unverified_info', [])

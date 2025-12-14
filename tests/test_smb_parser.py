@@ -1,397 +1,355 @@
 """
-Unit tests for SMB parser module.
+Unit tests for smb_parser module.
 
-Tests the SMBParser class which parses nmap SMB enumeration output
-from scripts like smb-enum-shares, smb-enum-users, and nbstat.
-
-Note: These tests define the expected behavior for the SMB parser.
-Since the parser is currently a stub implementation, tests will initially fail.
-This is expected and follows a TDD (Test-Driven Development) approach.
+Tests the SMBParser class which parses enum4linux-ng output.
 """
 
 import pytest
 from src.parsers.smb_parser import SMBParser
-from src.parsers.netbios_parser import parse_netbios_output
 
 
 @pytest.fixture
-def smb_shares_fixture_path():
-    """Return path to SMB shares enumeration fixture."""
-    return "tests/fixtures/smb_enum_shares.txt"
+def enum4linux_windows_fixture():
+    """Load Windows enum4linux sample."""
+    with open("tests/fixtures/enum4linux_windows.txt", "r") as f:
+        return f.read()
 
 
 @pytest.fixture
-def smb_users_fixture_path():
-    """Return path to SMB users enumeration fixture."""
-    return "tests/fixtures/smb_enum_users.txt"
-
-
-@pytest.fixture
-def smb_combined_fixture_path():
-    """Return path to combined SMB output fixture."""
-    return "tests/fixtures/smb_combined.txt"
-
-
-@pytest.fixture
-def netbios_fixture_path():
-    """Return path to NetBIOS enumeration fixture."""
-    return "tests/fixtures/netbios_sample.txt"
-
-
-@pytest.fixture
-def smb_shares_sample():
-    """Return sample SMB shares output."""
-    return """Host script results:
-| smb-enum-shares:
-|   \\\\192.168.1.100\\IPC$:
-|     Type: STYPE_IPC_HIDDEN
-|     Comment: Remote IPC
-|     Anonymous access: READ/WRITE
-|   \\\\192.168.1.100\\SharedFiles:
-|     Type: STYPE_DISKTREE
-|     Comment: Public shared folder
-|     Anonymous access: READ/WRITE"""
-
-
-@pytest.fixture
-def smb_users_sample():
-    """Return sample SMB users output."""
-    return """Host script results:
-| smb-enum-users:
-|   WORKGROUP\\Administrator (RID: 500)
-|     Description: Built-in account
-|     Flags:       Normal user account
-|   WORKGROUP\\Guest (RID: 501)
-|     Description: Built-in guest account
-|     Flags:       Account disabled"""
+def enum4linux_linux_fixture():
+    """Load Linux enum4linux sample."""
+    with open("tests/fixtures/enum4linux_linux.txt", "r") as f:
+        return f.read()
 
 
 class TestSMBParserBasicParsing:
-    """Test basic SMB parser functionality."""
+    """Test basic parsing functionality."""
 
-    def test_parse_valid_fixture_file(self, smb_combined_fixture_path):
-        """Test parsing a valid SMB combined fixture file."""
-        with open(smb_combined_fixture_path, 'r') as f:
-            content = f.read()
-
+    def test_parse_returns_dict(self, enum4linux_windows_fixture):
+        """Test that parse returns a dictionary."""
         parser = SMBParser()
-        result = parser.parse_smb_results(content)
-
+        result = parser.parse(enum4linux_windows_fixture)
         assert isinstance(result, dict)
-        assert result is not None
-
-    def test_parse_returns_dict(self, smb_shares_sample):
-        """Test that parse_smb_results returns a dictionary."""
-        parser = SMBParser()
-        result = parser.parse_smb_results(smb_shares_sample)
-
-        assert isinstance(result, dict)
+        assert "domain" in result
+        assert "os_info" in result
+        assert "null_session" in result
+        assert "users" in result
+        assert "groups" in result
+        assert "shares" in result
 
     def test_parse_empty_string(self):
         """Test parsing empty string."""
         parser = SMBParser()
-        result = parser.parse_smb_results("")
+        result = parser.parse("")
+        assert result["domain"] is None
+        assert result["os_info"] is None
+        assert result["null_session"] is False
+        assert result["users"] == []
+        assert result["groups"] == []
+        assert result["shares"] == []
 
-        assert isinstance(result, dict)
-
-    def test_parse_whitespace_only(self):
-        """Test parsing whitespace-only input."""
+    def test_parse_none_input(self):
+        """Test parsing None input."""
         parser = SMBParser()
-        result = parser.parse_smb_results("   \n\n   \t   ")
+        result = parser.parse(None)
+        assert result["domain"] is None
+        assert result["null_session"] is False
 
-        assert isinstance(result, dict)
 
+class TestSMBParserDomainExtraction:
+    """Test domain name extraction."""
 
-class TestSMBParserShareExtraction:
-    """Test SMB share extraction from nmap output."""
-
-    def test_extract_shares_returns_list(self, smb_shares_sample):
-        """Test that extract_shares returns a list."""
+    def test_extract_domain_windows(self, enum4linux_windows_fixture):
+        """Test domain extraction from Windows target."""
         parser = SMBParser()
-        shares = parser.extract_shares(smb_shares_sample)
+        result = parser.parse(enum4linux_windows_fixture)
+        assert result["domain"] == "WINSERVER"
 
-        assert isinstance(shares, list)
-
-    def test_extract_standard_shares(self, smb_shares_fixture_path):
-        """Test extraction of standard Windows shares (C$, IPC$, ADMIN$)."""
-        with open(smb_shares_fixture_path, 'r') as f:
-            content = f.read()
-
+    def test_extract_domain_linux(self, enum4linux_linux_fixture):
+        """Test domain extraction from Linux/Samba target."""
         parser = SMBParser()
-        shares = parser.extract_shares(content)
+        result = parser.parse(enum4linux_linux_fixture)
+        assert result["domain"] == "SAMBA"
 
-        # Convert shares to strings for checking
-        shares_str = str(shares)
-
-        # Should find at least some standard shares
-        assert isinstance(shares, list)
-        # Parser should extract share information
-        assert 'IPC$' in content  # Verify fixture has this data
-
-    def test_extract_custom_shares(self):
-        """Test extraction of custom file shares."""
-        sample = """Host script results:
-| smb-enum-shares:
-|   \\\\192.168.1.100\\SharedFiles:
-|     Type: STYPE_DISKTREE
-|     Comment: Public shared folder
-|     Anonymous access: READ/WRITE
-|   \\\\192.168.1.100\\Documents:
-|     Type: STYPE_DISKTREE
-|     Comment: Document repository
-|     Anonymous access: READ"""
-
+    def test_extract_domain_not_found(self):
+        """Test when domain is not in output."""
         parser = SMBParser()
-        shares = parser.extract_shares(sample)
+        output = "Some random output without domain info"
+        result = parser.parse(output)
+        assert result["domain"] is None
 
-        assert isinstance(shares, list)
-        # Fixture contains SharedFiles and Documents
 
-    def test_extract_shares_with_different_types(self, smb_shares_fixture_path):
-        """Test extraction handles different share types (DISK, IPC, PRINT)."""
-        with open(smb_shares_fixture_path, 'r') as f:
-            content = f.read()
+class TestSMBParserOSExtraction:
+    """Test OS information extraction."""
 
+    def test_extract_os_windows(self, enum4linux_windows_fixture):
+        """Test OS extraction from Windows target."""
         parser = SMBParser()
-        shares = parser.extract_shares(content)
+        result = parser.parse(enum4linux_windows_fixture)
+        assert "Windows Server 2019" in result["os_info"]
 
-        # Should handle different share types
-        assert isinstance(shares, list)
-
-    def test_extract_shares_with_permissions(self):
-        """Test that share permissions are captured."""
-        sample = """| smb-enum-shares:
-|   \\\\192.168.1.100\\Public:
-|     Anonymous access: READ/WRITE
-|   \\\\192.168.1.100\\ReadOnly:
-|     Anonymous access: READ
-|   \\\\192.168.1.100\\NoAccess:
-|     Anonymous access: <none>"""
-
+    def test_extract_os_linux(self, enum4linux_linux_fixture):
+        """Test OS extraction from Linux/Samba target."""
         parser = SMBParser()
-        shares = parser.extract_shares(sample)
+        result = parser.parse(enum4linux_linux_fixture)
+        assert "Linux" in result["os_info"]
 
-        # Parser should handle different permission levels
-        assert isinstance(shares, list)
-
-    def test_empty_shares_list(self):
-        """Test handling of output with no shares."""
-        sample = "No shares found"
-
+    def test_extract_os_not_found(self):
+        """Test when OS is not in output."""
         parser = SMBParser()
-        shares = parser.extract_shares(sample)
+        output = "Random output without OS"
+        result = parser.parse(output)
+        assert result["os_info"] is None
 
-        assert isinstance(shares, list)
 
-    def test_shares_with_spaces_in_names(self):
-        """Test handling shares with spaces in names."""
-        sample = """| smb-enum-shares:
-|   \\\\192.168.1.100\\My Documents:
-|     Type: STYPE_DISKTREE
-|     Comment: Personal files
-|   \\\\192.168.1.100\\Shared Folder:
-|     Type: STYPE_DISKTREE"""
+class TestSMBParserNullSessionDetection:
+    """Test null session vulnerability detection."""
 
+    def test_null_session_detected_windows(self, enum4linux_windows_fixture):
+        """Test null session detection in Windows output."""
         parser = SMBParser()
-        shares = parser.extract_shares(sample)
+        result = parser.parse(enum4linux_windows_fixture)
+        assert result["null_session"] is True
 
-        assert isinstance(shares, list)
+    def test_null_session_detected_linux(self, enum4linux_linux_fixture):
+        """Test null session detection in Linux output."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_linux_fixture)
+        assert result["null_session"] is True
+
+    def test_null_session_not_detected(self):
+        """Test when null session is not detected."""
+        parser = SMBParser()
+        output = "Some random enumeration output without indicators"
+        result = parser.parse(output)
+        assert result["null_session"] is False
 
 
 class TestSMBParserUserExtraction:
-    """Test SMB user extraction from nmap output."""
+    """Test user extraction from enum4linux output."""
 
-    def test_extract_users_returns_list(self, smb_users_sample):
-        """Test that extract_users returns a list."""
+    def test_extract_users_windows(self, enum4linux_windows_fixture):
+        """Test user extraction from Windows target."""
         parser = SMBParser()
-        users = parser.extract_users(smb_users_sample)
+        result = parser.parse(enum4linux_windows_fixture)
+        users = result["users"]
+        assert len(users) == 5
+        assert "Administrator" in users
+        assert "admin" in users
+        assert "dbuser" in users
+        assert "webadmin" in users
+        assert "Guest" in users
 
-        assert isinstance(users, list)
-
-    def test_extract_builtin_users(self, smb_users_fixture_path):
-        """Test extraction of built-in users (Administrator, Guest)."""
-        with open(smb_users_fixture_path, 'r') as f:
-            content = f.read()
-
+    def test_extract_users_linux(self, enum4linux_linux_fixture):
+        """Test user extraction from Linux target."""
         parser = SMBParser()
-        users = parser.extract_users(content)
+        result = parser.parse(enum4linux_linux_fixture)
+        users = result["users"]
+        assert len(users) == 3
+        assert "samba" in users
+        assert "scanner" in users
+        assert "backup" in users
 
-        assert isinstance(users, list)
-        # Fixture contains Administrator and Guest users
-
-    def test_extract_custom_users(self):
-        """Test extraction of custom users."""
-        sample = """Host script results:
-| smb-enum-users:
-|   WORKGROUP\\john (RID: 1001)
-|     Description: John Smith - IT Administrator
-|   WORKGROUP\\alice (RID: 1002)
-|     Description: Alice Johnson - Developer"""
-
+    def test_extract_users_sorted(self, enum4linux_windows_fixture):
+        """Test that users are sorted alphabetically."""
         parser = SMBParser()
-        users = parser.extract_users(sample)
+        result = parser.parse(enum4linux_windows_fixture)
+        users = result["users"]
+        assert users == sorted(users)
 
-        assert isinstance(users, list)
-        # Fixture contains custom users john and alice
-
-    def test_extract_users_with_descriptions(self, smb_users_fixture_path):
-        """Test that user descriptions are captured."""
-        with open(smb_users_fixture_path, 'r') as f:
-            content = f.read()
-
+    def test_extract_users_no_duplicates(self, enum4linux_windows_fixture):
+        """Test that user list has no duplicates."""
         parser = SMBParser()
-        users = parser.extract_users(content)
+        result = parser.parse(enum4linux_windows_fixture)
+        users = result["users"]
+        assert len(users) == len(set(users))
 
-        # Users should include description information
-        assert isinstance(users, list)
-
-    def test_empty_users_list(self):
-        """Test handling of output with no users."""
-        sample = "No users found"
-
+    def test_extract_users_empty_when_no_users(self):
+        """Test empty user list when no users found."""
         parser = SMBParser()
-        users = parser.extract_users(sample)
+        output = "Some output with no user information"
+        result = parser.parse(output)
+        assert result["users"] == []
 
-        assert isinstance(users, list)
 
+class TestSMBParserGroupExtraction:
+    """Test group extraction from enum4linux output."""
 
-class TestSMBParserVersionInfo:
-    """Test SMB version and OS information extraction."""
-
-    def test_extract_smb_version(self, smb_combined_fixture_path):
-        """Test extraction of SMB protocol version."""
-        with open(smb_combined_fixture_path, 'r') as f:
-            content = f.read()
-
+    def test_extract_groups_windows(self, enum4linux_windows_fixture):
+        """Test group extraction from Windows target."""
         parser = SMBParser()
-        result = parser.parse_smb_results(content)
+        result = parser.parse(enum4linux_windows_fixture)
+        groups = result["groups"]
+        assert len(groups) == 4
+        assert "Administrators" in groups
+        assert "Users" in groups
+        assert "Guests" in groups
+        assert "Domain Admins" in groups
 
-        # Result should be a dict that could contain version info
-        assert isinstance(result, dict)
-        # Fixture contains SMB2/SMB3 version information
-
-    def test_extract_os_information(self, smb_combined_fixture_path):
-        """Test extraction of OS information."""
-        with open(smb_combined_fixture_path, 'r') as f:
-            content = f.read()
-
+    def test_extract_groups_linux(self, enum4linux_linux_fixture):
+        """Test group extraction from Linux target."""
         parser = SMBParser()
-        result = parser.parse_smb_results(content)
+        result = parser.parse(enum4linux_linux_fixture)
+        groups = result["groups"]
+        assert len(groups) == 3
+        assert "None" in groups
+        assert "samba" in groups
+        assert "scanner" in groups
 
-        # Should extract OS information
-        assert isinstance(result, dict)
-        # Fixture contains Windows Server 2019 information
-
-    def test_extract_computer_name(self, smb_combined_fixture_path):
-        """Test extraction of NetBIOS computer name."""
-        with open(smb_combined_fixture_path, 'r') as f:
-            content = f.read()
-
+    def test_extract_groups_sorted(self, enum4linux_windows_fixture):
+        """Test that groups are sorted alphabetically."""
         parser = SMBParser()
-        result = parser.parse_smb_results(content)
+        result = parser.parse(enum4linux_windows_fixture)
+        groups = result["groups"]
+        assert groups == sorted(groups)
 
-        assert isinstance(result, dict)
-        # Fixture contains WIN-SRV01 as computer name
+    def test_extract_groups_no_duplicates(self, enum4linux_windows_fixture):
+        """Test that group list has no duplicates."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_windows_fixture)
+        groups = result["groups"]
+        assert len(groups) == len(set(groups))
+
+    def test_extract_groups_empty_when_none(self):
+        """Test empty group list when no groups found."""
+        parser = SMBParser()
+        output = "Some output with no group information"
+        result = parser.parse(output)
+        assert result["groups"] == []
+
+
+class TestSMBParserShareExtraction:
+    """Test share extraction from enum4linux output."""
+
+    def test_extract_shares_windows(self, enum4linux_windows_fixture):
+        """Test share extraction from Windows target."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_windows_fixture)
+        shares = result["shares"]
+        assert len(shares) == 5
+
+        share_names = [s["name"] for s in shares]
+        assert "ADMIN$" in share_names
+        assert "C$" in share_names
+        assert "IPC$" in share_names
+        assert "Documents" in share_names
+        assert "Public" in share_names
+
+    def test_extract_shares_linux(self, enum4linux_linux_fixture):
+        """Test share extraction from Linux target."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_linux_fixture)
+        shares = result["shares"]
+        assert len(shares) == 3
+
+        share_names = [s["name"] for s in shares]
+        assert "IPC$" in share_names
+        assert "backup" in share_names
+        assert "data" in share_names
+
+    def test_share_has_required_fields(self, enum4linux_windows_fixture):
+        """Test that each share has required fields."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_windows_fixture)
+        shares = result["shares"]
+        for share in shares:
+            assert "name" in share
+            assert "type" in share
+            assert "comment" in share
+            assert share["type"] == "Disk"
+
+    def test_share_comment_extraction(self, enum4linux_windows_fixture):
+        """Test that share comments are extracted correctly."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_windows_fixture)
+        shares = result["shares"]
+
+        # Find C$ share
+        c_share = next((s for s in shares if s["name"] == "C$"), None)
+        assert c_share is not None
+        assert c_share["comment"] == "Default share"
+
+    def test_extract_shares_empty_when_none(self):
+        """Test empty share list when no shares found."""
+        parser = SMBParser()
+        output = "Some output with no share information"
+        result = parser.parse(output)
+        assert result["shares"] == []
+
+    def test_shares_no_duplicates(self, enum4linux_windows_fixture):
+        """Test that share list has no duplicates."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_windows_fixture)
+        shares = result["shares"]
+        share_names = [s["name"] for s in shares]
+        assert len(share_names) == len(set(share_names))
+
+
+class TestSMBParserCompleteness:
+    """Test that all data is extracted correctly for complete targets."""
+
+    def test_complete_windows_enumeration(self, enum4linux_windows_fixture):
+        """Test complete enumeration data for Windows target."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_windows_fixture)
+
+        # Verify all components are present
+        assert result["domain"] == "WINSERVER"
+        assert result["os_info"] is not None
+        assert result["null_session"] is True
+        assert len(result["users"]) == 5
+        assert len(result["groups"]) == 4
+        assert len(result["shares"]) == 5
+
+    def test_complete_linux_enumeration(self, enum4linux_linux_fixture):
+        """Test complete enumeration data for Linux/Samba target."""
+        parser = SMBParser()
+        result = parser.parse(enum4linux_linux_fixture)
+
+        # Verify all components are present
+        assert result["domain"] == "SAMBA"
+        assert result["os_info"] is not None
+        assert result["null_session"] is True
+        assert len(result["users"]) == 3
+        assert len(result["groups"]) == 3
+        assert len(result["shares"]) == 3
 
 
 class TestSMBParserEdgeCases:
-    """Test edge cases and error handling."""
+    """Test edge cases and unusual inputs."""
 
-    def test_malformed_share_entry(self):
-        """Test handling of malformed share entry."""
-        sample = """| smb-enum-shares:
-|   Invalid share entry
-|   \\\\192.168.1.100\\ValidShare:
-|     Type: STYPE_DISKTREE"""
-
+    def test_parse_whitespace_only(self):
+        """Test parsing string with only whitespace."""
         parser = SMBParser()
-        shares = parser.extract_shares(sample)
+        result = parser.parse("   \n  \t  \n")
+        assert result["domain"] is None
+        assert result["users"] == []
 
-        # Should gracefully handle malformed data
-        assert isinstance(shares, list)
-
-    def test_malformed_user_entry(self):
-        """Test handling of malformed user entry."""
-        sample = """| smb-enum-users:
-|   Invalid user entry
-|   WORKGROUP\\ValidUser (RID: 1001)"""
-
+    def test_parse_malformed_entries(self):
+        """Test parsing with malformed entries mixed in."""
+        output = """
+        [E] Domain Name: TESTDOMAIN
+        [E] Invalid line with no proper format
+        [-] User 'testuser' (rid 1000)
+        """
         parser = SMBParser()
-        users = parser.extract_users(sample)
+        result = parser.parse(output)
+        assert result["domain"] == "TESTDOMAIN"
+        assert "testuser" in result["users"]
 
-        # Should gracefully handle malformed data
-        assert isinstance(users, list)
-
-    def test_mixed_valid_invalid_data(self):
-        """Test handling of mixed valid and invalid entries."""
-        sample = """Host script results:
-| smb-enum-shares:
-|   \\\\192.168.1.100\\ValidShare:
-|     Type: STYPE_DISKTREE
-|   Invalid line here
-|   \\\\192.168.1.100\\AnotherShare:
-|     Type: STYPE_DISKTREE"""
-
+    def test_case_insensitive_domain_extraction(self):
+        """Test that domain extraction is case-insensitive."""
+        output = "domain name: MYTEST"
         parser = SMBParser()
-        shares = parser.extract_shares(sample)
+        result = parser.parse(output)
+        assert result["domain"] == "MYTEST"
 
-        # Should extract valid entries and skip invalid ones
-        assert isinstance(shares, list)
-
-    def test_none_input(self):
-        """Test handling of None input."""
+    def test_multiple_domains_first_wins(self):
+        """Test that first domain found is used."""
+        output = """
+        Domain Name: FIRST
+        Domain Name: SECOND
+        """
         parser = SMBParser()
-
-        # Should handle None gracefully
-        try:
-            result = parser.parse_smb_results(None)
-            assert isinstance(result, dict)
-        except (TypeError, AttributeError):
-            # Acceptable to raise exception for None input
-            pass
-
-
-class TestNetBIOSParserIntegration:
-    """Test NetBIOS parser integration."""
-
-    def test_parse_netbios_output(self, netbios_fixture_path):
-        """Test parsing NetBIOS output."""
-        with open(netbios_fixture_path, 'r') as f:
-            content = f.read()
-
-        result = parse_netbios_output(content)
-
-        assert isinstance(result, dict)
-
-    def test_extract_netbios_name(self, netbios_fixture_path):
-        """Test extraction of NetBIOS computer name."""
-        with open(netbios_fixture_path, 'r') as f:
-            content = f.read()
-
-        result = parse_netbios_output(content)
-
-        # Should extract NetBIOS name information
-        assert isinstance(result, dict)
-        # Fixture contains WIN-SRV01
-
-    def test_extract_workgroup(self, netbios_fixture_path):
-        """Test extraction of workgroup name."""
-        with open(netbios_fixture_path, 'r') as f:
-            content = f.read()
-
-        result = parse_netbios_output(content)
-
-        # Should extract workgroup information
-        assert isinstance(result, dict)
-        # Fixture contains WORKGROUP
-
-    def test_extract_mac_address(self, netbios_fixture_path):
-        """Test extraction of MAC address."""
-        with open(netbios_fixture_path, 'r') as f:
-            content = f.read()
-
-        result = parse_netbios_output(content)
-
-        # Should extract MAC address if present
-        assert isinstance(result, dict)
-        # Fixture contains 00:0c:29:3a:2b:1c (VMware)
+        result = parser.parse(output)
+        assert result["domain"] == "FIRST"
