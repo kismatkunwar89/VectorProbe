@@ -150,7 +150,9 @@ def populate_host_results(nmap_hosts):
                     vuln_handler = VulnerabilityHandler(timeout_sec=15)
                     ss_result = vuln_handler.run_searchsploit_json(query)
                     if ss_result.exit_code == 0:
-                        exploits = parse_searchsploit_json(ss_result.raw_json)
+                        # Pass query so parser can filter by version relevance
+                        exploits = parse_searchsploit_json(
+                            ss_result.raw_json, query)
                 except Exception:
                     exploits = []
 
