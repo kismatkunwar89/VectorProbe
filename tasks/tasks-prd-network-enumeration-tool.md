@@ -134,6 +134,7 @@
   - [ ] 8.1 Write a comprehensive `README.md`.
   - [ ] 8.2 Write `contributions.md` and `limitations.md`.
   - [ ] 8.3 Generate sample reports.
+  - [ ] 8.4 Finalize `user_guide.md`.
 
 - [x] 9.0 **CLI User Experience Enhancements**
   > *__Covered by:__ Kismat*
