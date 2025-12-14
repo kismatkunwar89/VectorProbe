@@ -216,23 +216,44 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
                         f"| {service['port']} | {service['protocol']} | {service['name']} | {service['fingerprint']} | {service['exploit_summary']} |\n")
                 file.write("\n")
 
+                # Track exploits already displayed for this host
+                displayed_exploits = set()
+
                 for service in normalized_services:
                     exploits = service['exploits']
                     if not exploits:
                         continue
-                    file.write(
-                        f"**Exploits for {service['name']} ({len(exploits)})**\n\n")
+
+                    # Filter out exploits already displayed
+                    unique_exploits = []
                     for exploit in exploits:
-                        title = exploit.get('title') or 'Unnamed exploit'
+                        # Create unique key from exploit identifiers
                         edb_id = exploit.get('edb_id')
-                        path = exploit.get('path')
-                        descriptor = title
-                        if edb_id:
-                            descriptor += f" [EDB-{edb_id}]"
-                        if path:
-                            descriptor += f" – {path}"
-                        file.write(f"- {descriptor}\n")
-                    file.write("\n")
+                        title = exploit.get('title', '')
+                        path = exploit.get('path', '')
+
+                        # Use EDB-ID if available, otherwise use (title, path) tuple
+                        exploit_key = edb_id if edb_id else (title, path)
+
+                        if exploit_key not in displayed_exploits:
+                            unique_exploits.append(exploit)
+                            displayed_exploits.add(exploit_key)
+
+                    # Only render section if there are unique exploits
+                    if unique_exploits:
+                        file.write(
+                            f"**Exploits for {service['name']} ({len(unique_exploits)})**\n\n")
+                        for exploit in unique_exploits:
+                            title = exploit.get('title') or 'Unnamed exploit'
+                            edb_id = exploit.get('edb_id')
+                            path = exploit.get('path')
+                            descriptor = title
+                            if edb_id:
+                                descriptor += f" [EDB-{edb_id}]"
+                            if path:
+                                descriptor += f" – {path}"
+                            file.write(f"- {descriptor}\n")
+                        file.write("\n")
             else:
                 file.write("No services detected.\n\n")
 
@@ -244,23 +265,26 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
             # NetBIOS results if available
             if netbios_results and host_ip in netbios_results:
                 netbios_data = netbios_results[host_ip]
-                file.write("#### NetBIOS Enumeration\n\n")
 
-                if netbios_data.get('workgroup'):
-                    file.write(
-                        f"**Workgroup:** {netbios_data['workgroup']}\n\n")
+                # Only render if there's actual data (not just empty dict)
+                if netbios_data and any(netbios_data.values()):
+                    file.write("#### NetBIOS Enumeration\n\n")
 
-                if netbios_data.get('names'):
-                    file.write("**NetBIOS Names:**\n")
-                    for name in netbios_data['names']:
-                        file.write(f"- {name}\n")
-                    file.write("\n")
+                    if netbios_data.get('workgroup'):
+                        file.write(
+                            f"**Workgroup:** {netbios_data['workgroup']}\n\n")
 
-                if netbios_data.get('addresses'):
-                    file.write("**Addresses:**\n")
-                    for addr in netbios_data['addresses']:
-                        file.write(f"- {addr}\n")
-                    file.write("\n")
+                    if netbios_data.get('names'):
+                        file.write("**NetBIOS Names:**\n")
+                        for name in netbios_data['names']:
+                            file.write(f"- {name}\n")
+                        file.write("\n")
+
+                    if netbios_data.get('addresses'):
+                        file.write("**Addresses:**\n")
+                        for addr in netbios_data['addresses']:
+                            file.write(f"- {addr}\n")
+                        file.write("\n")
 
             # Unverified info
             unverified = result.get('unverified_info', [])

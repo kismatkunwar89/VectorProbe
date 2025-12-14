@@ -11,17 +11,12 @@ class NmapParser:
 
     def parse(self):
         """Parse both real Nmap output and custom format"""
-        # Prefer the real Nmap parser whenever we see genuine output
-        # (identified by the "Nmap scan report for" banner).
-        if 'Nmap scan report for' in self.nmap_output:
-            logger.info("[PARSER] Detected REAL NMAP format")
-            self._parse_real_nmap_format()
-        elif 'Host:' in self.nmap_output:
+        # Check if this is custom format (has "Host:" lines) or real Nmap output
+        if 'Host:' in self.nmap_output and not 'Starting Nmap' in self.nmap_output:
             logger.info("[PARSER] Detected CUSTOM format")
             self._parse_custom_format()
         else:
-            # Default to the real parser when unsure so we still harvest data
-            logger.info("[PARSER] Defaulting to REAL NMAP format")
+            logger.info("[PARSER] Detected REAL NMAP format")
             self._parse_real_nmap_format()
         logger.info(f"[PARSER] Total hosts found: {len(self.hosts)}")
 
@@ -37,9 +32,11 @@ class NmapParser:
         """Parse real Nmap normal output format (-oN -)"""
         lines = self.nmap_output.strip().split('\n')
         logger.info(f"[PARSER] Processing {len(lines)} lines of Nmap output")
-        logger.info(f"[PARSER] First 200 chars of output:\n{self.nmap_output[:200]}")
+        logger.info(
+            f"[PARSER] First 200 chars of output:\n{self.nmap_output[:200]}")
 
         current_host = None
+        nse_lines = []  # Collect NSE script output for metadata extraction
 
         for i, raw_line in enumerate(lines):
             line = raw_line.rstrip('\n')
@@ -53,16 +50,23 @@ class NmapParser:
 
             # Detect host line: "Nmap scan report for 192.168.1.1"
             if 'scan report for' in stripped.lower():
-                logger.info(f"[PARSER] *** FOUND HOST LINE at {i}: {stripped[:80]}")
+                logger.info(
+                    f"[PARSER] *** FOUND HOST LINE at {i}: {stripped[:80]}")
                 if current_host is not None and current_host.get('host'):
+                    # Extract metadata from NSE scripts before saving host
+                    self._extract_and_apply_metadata(current_host, nse_lines)
                     self.hosts.append(current_host)
                     logger.info(
                         f"[PARSER] Added host: {current_host['host']} with {len(current_host['ports'])} ports")
+
+                # Reset NSE lines for new host
+                nse_lines = []
 
                 # Extract IP
                 match = re.search(r'[Nn]map scan report for\s+(.+)', stripped)
                 if match:
                     host_text = match.group(1).strip()
+                    logger.info(f"[PARSER] Extracted host text: '{host_text}'")
                     ip_value = None
 
                     # Handle "hostname (IP)" output
@@ -79,10 +83,14 @@ class NmapParser:
                         'host': host_text,
                         'ip': ip_value or host_text,
                         'ports': [],
-                        'services': [],
-                        'os': 'Unknown'
+                        'os': 'Unknown',
+                        'hostname': None,
+                        'domain': None
                     }
                     logger.info(f"[PARSER] Found host: {current_host['host']}")
+                else:
+                    logger.warning(
+                        f"[PARSER] Failed to extract host from: {stripped[:80]}")
 
                 continue
 
@@ -113,48 +121,18 @@ class NmapParser:
                         logger.info(
                             f"[PARSER] ✓ Added port: {port_protocol}/{state}/{service}")
 
-                        # Capture extended service fingerprint information
-                        port_value = None
-                        protocol = None
-                        if '/' in port_protocol:
-                            try:
-                                port_part, protocol = port_protocol.split('/', 1)
-                            except ValueError:
-                                port_part = port_protocol
-                                protocol = 'tcp'
-                        else:
-                            port_part = port_protocol
-                            protocol = 'tcp'
-
-                        try:
-                            port_value = int(port_part)
-                        except ValueError:
-                            port_value = None
-
-                        fingerprint = " ".join(parts[3:]) if len(parts) > 3 else ''
-                        service_entry = {
-                            'port': port_value if port_value is not None else port_part,
-                            'protocol': protocol,
-                            'state': state,
-                            'name': service,
-                        }
-
-                        if fingerprint:
-                            # Extract version first
-                            version_match = re.search(r'\d+(?:\.\d+)+', fingerprint)
-                            if version_match:
-                                service_entry['version'] = version_match.group(0)
-                                # Remove version from fingerprint to avoid duplication
-                                product_only = fingerprint.replace(version_match.group(0), '').strip()
-                                service_entry['product'] = product_only if product_only else fingerprint
-                            else:
-                                service_entry['product'] = fingerprint
-
-                        current_host.setdefault('services', []).append(service_entry)
-
-            # Skip lines starting with pipe (| from NSE scripts output)
+            # Collect NSE script output (lines starting with |)
             elif stripped.startswith('|'):
-                logger.debug(f"[PARSER] Line {i}: SKIPPED (NSE script output)")
+                nse_lines.append(line)
+                logger.debug(f"[PARSER] Line {i}: COLLECTED NSE script output")
+                continue
+
+            # Parse Service Info line for hostname
+            elif current_host and 'service info:' in stripped.lower():
+                match = re.search(r'Service Info:.*Host:\s+([^;]+)', stripped, re.IGNORECASE)
+                if match and not current_host.get('hostname'):
+                    current_host['hostname'] = match.group(1).strip()
+                    logger.info(f"[PARSER] Extracted hostname from Service Info: {current_host['hostname']}")
                 continue
 
             # Detect OS line: "OS details: Linux 5.4" (case-insensitive)
@@ -163,8 +141,9 @@ class NmapParser:
                 if match:
                     current_host['os'] = match.group(1).strip()
 
-        # Don't forget the last host
+        # Don't forget the last host - extract metadata first
         if current_host is not None and current_host.get('host'):
+            self._extract_and_apply_metadata(current_host, nse_lines)
             self.hosts.append(current_host)
 
     def _parse_host_block(self, block):
@@ -190,3 +169,50 @@ class NmapParser:
     def _extract_os(self, line):
         match = re.search(r'OS details:\s+(.+)', line)
         return match.group(1) if match else None
+
+    def _extract_nse_metadata(self, nse_lines):
+        """
+        Extract metadata from NSE script output generically.
+        Looks for patterns like:
+          |   field_name: field_value
+          |_  field_name: field_value
+        """
+        metadata = {}
+
+        for line in nse_lines:
+            # Match indented key-value pairs in NSE output
+            # Pattern: |   Key: Value or |_  Key: Value
+            match = re.match(r'^\s*\|[_ ]\s+([A-Za-z_]+(?:[A-Za-z_\s]+)?):\s*(.+)$', line)
+            if match:
+                key = match.group(1).strip().lower().replace(' ', '_')
+                value = match.group(2).strip()
+                metadata[key] = value
+
+        logger.debug(f"[PARSER] Extracted NSE metadata: {list(metadata.keys())}")
+        return metadata
+
+    def _extract_and_apply_metadata(self, host, nse_lines):
+        """Extract metadata from NSE scripts and apply to host dictionary."""
+        if not nse_lines:
+            return
+
+        nse_metadata = self._extract_nse_metadata(nse_lines)
+
+        # Try multiple common field names for hostname (in order of preference)
+        hostname_fields = ['netbios_computer_name', 'dns_computer_name',
+                          'computer_name', 'hostname', 'fqdn']
+        for field in hostname_fields:
+            if field in nse_metadata and not host.get('hostname'):
+                # Extract just the hostname part (before first dot)
+                hostname_value = nse_metadata[field].split('.')[0]
+                host['hostname'] = hostname_value
+                logger.info(f"[PARSER] Extracted hostname from NSE ({field}): {hostname_value}")
+                break
+
+        # Try multiple common field names for domain
+        domain_fields = ['dns_domain_name', 'domain_name', 'dns_tree_name', 'forest_name']
+        for field in domain_fields:
+            if field in nse_metadata and not host.get('domain'):
+                host['domain'] = nse_metadata[field]
+                logger.info(f"[PARSER] Extracted domain from NSE ({field}): {nse_metadata[field]}")
+                break

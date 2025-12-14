@@ -83,17 +83,39 @@ class SMBParser:
         return None
 
     def _check_null_session(self, output: str) -> bool:
-        """Check if null sessions are allowed."""
-        null_session_indicators = [
-            r"Access over.*session successful",
-            r"\[E\]\s+null session",
-            r"Null Session",
+        """
+        Check if null sessions are allowed by looking for:
+        - Positive indicators (session successful)
+        - Negative indicators (session denied/failed)
+        """
+        # Negative indicators: null session explicitly denied
+        denial_patterns = [
+            r"Could not establish null session",
+            r"STATUS_ACCESS_DENIED",
+            r"null session.*denied",
+            r"null session.*failed",
+            r"\[-\].*null session",  # Negative status indicator
         ]
 
-        for pattern in null_session_indicators:
-            if re.search(pattern, output, re.IGNORECASE):
-                return True
+        # Positive indicators: null session succeeded
+        success_patterns = [
+            r"Access over.*session successful",
+            r"\[E\]\s+null session",
+            r"Null Session.*allowed",
+            r"anonymous.*successful",
+        ]
 
+        # Check for explicit denials first (more specific)
+        for pattern in denial_patterns:
+            if re.search(pattern, output, re.IGNORECASE):
+                return False  # Explicitly denied
+
+        # Then check for positive indicators
+        for pattern in success_patterns:
+            if re.search(pattern, output, re.IGNORECASE):
+                return True  # Session allowed
+
+        # Default: if no indicators found, assume disabled
         return False
 
     def _extract_users(self, output: str) -> List[str]:
