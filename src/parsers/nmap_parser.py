@@ -140,10 +140,15 @@ class NmapParser:
                         }
 
                         if fingerprint:
-                            service_entry['product'] = fingerprint
+                            # Extract version first
                             version_match = re.search(r'\d+(?:\.\d+)+', fingerprint)
                             if version_match:
                                 service_entry['version'] = version_match.group(0)
+                                # Remove version from fingerprint to avoid duplication
+                                product_only = fingerprint.replace(version_match.group(0), '').strip()
+                                service_entry['product'] = product_only if product_only else fingerprint
+                            else:
+                                service_entry['product'] = fingerprint
 
                         current_host.setdefault('services', []).append(service_entry)
 
