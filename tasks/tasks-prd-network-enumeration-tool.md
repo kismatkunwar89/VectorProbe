@@ -110,18 +110,18 @@
 - [ ] 6.0 **Stage 4: Service-Specific Deep Enumeration**
   - [x] 6.1 Implement the orchestration logic in the controller.
     > *__Covered by:__ Kismat (Main 4-stage orchestration implemented)*
-  - [ ] 6.2 **HTTP/S Enumeration:**
-    > *__To Do:__ Kismat*
-    - [ ] 6.2.1 Create `http_handler.py` and `http_parser.py`.
-    - [ ] 6.2.2 **Write unit tests using fixtures.**
+  - [c] 6.2 **HTTP/S Enumeration:**
+    > *__Cancelled:__ Not explicitly required by project.md*
+    - [c] 6.2.1 Create `http_handler.py` and `http_parser.py`.
+    - [c] 6.2.2 **Write unit tests using fixtures.**
   - [x] 6.3 **SMB Enumeration:**
     > *__Covered by:__ Gamvirta (initial) & Kismat (enhancements)*
     - [x] 6.3.1 **Write unit tests using fixtures.**
       > *__Covered by:__ Kismat (27 tests - all passing, 4 fixture files)*
-  - [ ] 6.4 **DNS Enumeration:**
-    > *__To Do:__ Gamvirta*
-    - [ ] 6.4.1 Create `dns_handler.py` and `dns_parser.py`.
-    - [ ] 6.4.2 **Write unit tests using fixtures.**
+  - [c] 6.4 **DNS Enumeration:**
+    > *__Cancelled:__ Not explicitly required by project.md (beyond the DNS Safety Feature, which is done)*
+    - [c] 6.4.1 Create `dns_handler.py` and `dns_parser.py`.
+    - [c] 6.4.2 **Write unit tests using fixtures.**
 
 - [x] 7.0 **Stage 5: Report Generation**
   > *__Covered by:__ Kismat*
