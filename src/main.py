@@ -19,6 +19,9 @@ from parsers.nmap_parser import NmapParser
 from models.host_result import HostResult
 from models.enumeration_result import EnumerationResult
 from report.report_generator import generate_report
+from handlers.vulnerability_handler import VulnerabilityHandler
+from parsers.vulnerability_parser import parse_searchsploit_json
+
 
 
 def display_masscan_results(hosts_data):
@@ -118,6 +121,40 @@ def populate_host_results(nmap_hosts):
                         port=int(port_num),
                         protocol=protocol
                     )
+                    
+                    # Get service version if available (from nmap output)
+                    service_version = ""
+                    if isinstance(port, dict):
+                        service_version = str(
+                            port.get("version") or port.get("product") or ""
+                        ).strip()
+
+                    # Build search query like: "ssh OpenSSH 7.2p2"
+                    query = f"{service_name} {service_version}".strip()
+
+                    try:
+                        # Create vulnerability handler
+                        vuln_handler = VulnerabilityHandler(timeout_sec=15)
+
+                        # Run searchsploit --json for this service
+                        ss_result = vuln_handler.run_searchsploit_json(query)
+
+                        # Parse searchsploit JSON output
+                        if ss_result.exit_code == 0:
+                            exploits = parse_searchsploit_json(ss_result.raw_json)
+                        else:
+                            exploits = []
+
+                        # Attach exploits to the last added service
+                        # (services are stored as dictionaries)
+                        if host.services and isinstance(host.services[-1], dict):
+                            host.services[-1]["exploits"] = exploits
+
+                    except Exception:
+                        # If searchsploit is missing or fails,
+                        # do not stop the scan
+                        if host.services and isinstance(host.services[-1], dict):
+                            host.services[-1]["exploits"] = []
                 except (ValueError, TypeError):
                     pass
 
@@ -298,6 +335,8 @@ def main():
         logger.error(f"[!] Report generation failed: {e}")
 
     logger.info("[✓] Enumeration workflow complete")
+
+
 
 
 if __name__ == "__main__":
