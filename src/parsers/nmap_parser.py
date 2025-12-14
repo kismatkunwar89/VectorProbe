@@ -74,14 +74,19 @@ class NmapParser:
                     state = parts[1]  # e.g., "open"
                     service = parts[2] if len(parts) > 2 else 'unknown'
 
-                    logger.debug(
-                        f"[PARSER] Line {i}: PORT LINE: {port_protocol} {state} {service}")
+                    logger.info(
+                        f"[PARSER] ✓ PORT found on line {i}: {port_protocol} {state} {service}")
 
                     if state == 'open' or state == 'filtered':
                         current_host['ports'].append(
                             f"{port_protocol}/{state}/{service}")
                         logger.info(
-                            f"[PARSER] Added port: {port_protocol}/{state}/{service}")
+                            f"[PARSER] ✓ Added port: {port_protocol}/{state}/{service}")
+
+            # Skip lines starting with pipe (| from NSE scripts output)
+            elif line.startswith('|'):
+                logger.debug(f"[PARSER] Line {i}: SKIPPED (NSE script output)")
+                continue
 
             # Detect OS line: "OS details: Linux 5.4"
             elif current_host and 'OS details:' in line:
