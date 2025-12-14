@@ -7,7 +7,6 @@ arguments, and kicks off the enumeration process.
 """
 
 import logging
-import re
 import sys
 from datetime import datetime
 from utils.logger import setup_logging
@@ -29,6 +28,7 @@ from parsers.vulnerability_parser import (
     parse_searchsploit_json,
     extract_search_keywords
 )
+from utils.query_builder import build_searchsploit_query
 
 MAX_EXPLOITS_PER_SERVICE = 5
 
@@ -153,58 +153,6 @@ def populate_host_results(nmap_hosts):
             # Build search query from service label + fingerprint fields
             fingerprint = " ".join(
                 [str(value).strip() for value in [product, version] if value])
-
-            # Build smart searchsploit query based on product/version
-            # Combines real protocol/product with vendor/version tokens
-            # No quotes needed - searchsploit -t handles multi-word matching
-            def build_searchsploit_query(service: str, fp: str) -> str:
-                """Build optimized searchsploit query from service and fingerprint."""
-                fp_lower = (fp or '').lower()
-
-                # Extract version from fingerprint (e.g., "8.9p1" -> "8.9")
-                version_match = re.search(r'(\d+\.\d+)', fp or '')
-                ver = version_match.group(1) if version_match else ''
-
-                # Extract Windows version if present (e.g., "2016", "2019", "10")
-                win_ver_match = re.search(
-                    r'Windows\s+(?:Server\s+)?(\d+)', fp or '', re.IGNORECASE)
-                win_ver = win_ver_match.group(1) if win_ver_match else ''
-
-                # Service-specific query building (no quotes, searchsploit -t handles it)
-                if service == 'microsoft-ds':
-                    return f'smb windows {win_ver}' if win_ver else 'smb windows'
-                elif service == 'ms-wbt-server':
-                    return 'rdp windows'
-                elif service == 'kerberos-sec':
-                    return 'kerberos windows'
-                elif service == 'ldap':
-                    return 'ldap windows' if 'windows' in fp_lower else 'ldap'
-                elif service == 'msrpc':
-                    return 'microsoft rpc'
-                elif 'openssh' in fp_lower:
-                    # Use major.minor version for better matching
-                    return f'openssh {ver}' if ver else 'openssh'
-                elif 'dnsmasq' in fp_lower:
-                    return 'dnsmasq'  # Version filtering handles specifics
-                elif 'postgresql' in fp_lower:
-                    return f'postgresql {ver}' if ver else 'postgresql'
-                elif 'simple dns' in fp_lower:
-                    return 'Simple DNS Plus'
-                elif 'httpapi' in fp_lower:
-                    return 'httpapi'  # Generic, often 0 results
-                elif 'apache' in fp_lower:
-                    return f'apache {ver}' if ver else 'apache httpd'
-                elif 'nginx' in fp_lower:
-                    return f'nginx {ver}' if ver else 'nginx'
-                elif 'iis' in fp_lower:
-                    return f'iis {ver}' if ver else 'Microsoft IIS'
-                elif fp and not re.match(r'^(Windows|Microsoft|Linux|Ubuntu)', fp, re.IGNORECASE):
-                    # Use fingerprint directly if it's a product (not OS info)
-                    parts = fp.split()[:3]
-                    return ' '.join(parts)
-                else:
-                    # Skip generic service labels without product info
-                    return ''
 
             query_string = build_searchsploit_query(service_label, fingerprint)
             keyword_basis = " ".join(
