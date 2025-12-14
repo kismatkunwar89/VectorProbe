@@ -133,6 +133,8 @@ class NmapHandler:
             "-sC",      # Default safe scripts
             "-O",       # OS detection
             "-Pn",      # Skip ping (useful in restricted networks)
+            "-oN",      # Normal output format
+            "-",        # Output to stdout
             targets
         ]
         return self._run(cmd)
