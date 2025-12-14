@@ -170,13 +170,14 @@ class NmapHandler:
         return self._run(cmd)
 
     @timing
-    def host_discovery(self, targets: str) -> CommandResult:
+    def host_discovery(self, targets: str, exclude: str = "") -> CommandResult:
         """
         Fast host discovery using ping sweep (-sn).
 
         Args:
             targets: Target(s) - IP, CIDR, or comma-separated targets
                     Examples: "192.168.1.1" or "192.168.1.0/24"
+            exclude: Hosts to exclude from scan (comma-separated)
 
         Returns:
             CommandResult with greppable output containing live hosts
@@ -193,8 +194,13 @@ class NmapHandler:
             "-sn",      # Ping sweep only (no port scan)
             "-oG",     # Greppable output format
             "-",       # Output to stdout
-            *target_args
         ]
+
+        # Add exclusion if provided
+        if exclude and exclude.strip():
+            cmd.extend(["--exclude", exclude.strip()])
+
+        cmd.extend(target_args)
         return self._run(cmd)
 
     @validate_ip

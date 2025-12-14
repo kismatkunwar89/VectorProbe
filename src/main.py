@@ -241,52 +241,61 @@ def main():
     command_outputs = []  # Track all executed commands
 
     # ============================================================
-    # STAGE 0: Target Resolution and Exclusion Processing
+    # STAGE 0: Target Resolution (Only for non-CIDR targets)
     # ============================================================
-    logger.info("[*] Resolving targets and processing exclusions...")
-    try:
-        resolved_targets, dns_targets = parse_and_resolve_targets(
-            targets=args.targets,
-            exclude=args.exclude,
-            no_prompt=args.no_prompt
-        )
+    has_cidr = "/" in args.targets
 
+    if has_cidr:
+        # For CIDR ranges, let nmap handle targets and exclusions directly
         logger.info(
-            f"[+] Resolved {len(resolved_targets)} target hosts after exclusions")
-
-        # Convert resolved targets back to comma-separated string for nmap
-        if resolved_targets:
-            resolved_ips = [target.ip for target in resolved_targets]
-            nmap_targets = ",".join(resolved_ips)
-            logger.info(f"[+] Final target list: {len(resolved_ips)} hosts")
-        else:
-            logger.warning(
-                "[!] No targets remaining after exclusion processing")
-            return
-
-    except Exception as e:
-        logger.error(f"[!] Target resolution error: {e}")
-        logger.info("[*] Proceeding with raw targets (exclusions not applied)")
+            "[*] CIDR range detected - nmap will handle targets and exclusions")
         nmap_targets = args.targets
+    else:
+        # For individual IPs/DNS, resolve and process exclusions
+        logger.info(
+            "[*] Resolving individual targets and processing exclusions...")
+        try:
+            resolved_targets, dns_targets = parse_and_resolve_targets(
+                targets=args.targets,
+                exclude=args.exclude,
+                no_prompt=args.no_prompt
+            )
+
+            logger.info(
+                f"[+] Resolved {len(resolved_targets)} target hosts after exclusions")
+
+            # Convert resolved targets back to comma-separated string for nmap
+            if resolved_targets:
+                resolved_ips = [target.ip for target in resolved_targets]
+                nmap_targets = ",".join(resolved_ips)
+                logger.info(
+                    f"[+] Final target list: {len(resolved_ips)} hosts")
+            else:
+                logger.warning(
+                    "[!] No targets remaining after exclusion processing")
+                return
+
+        except Exception as e:
+            logger.error(f"[!] Target resolution error: {e}")
+            logger.info(
+                "[*] Proceeding with raw targets (exclusions not applied)")
+            nmap_targets = args.targets
 
     # ============================================================
     # STAGE 1: Host Discovery (Optimized Approach)
     # ============================================================
     live_hosts = []
 
-    # Check if original targets had CIDR ranges that would benefit from host discovery
-    has_cidr = "/" in args.targets
-    # Also check if we have many resolved targets (indicating CIDR expansion)
-    many_targets = len(nmap_targets.split(',')) > 10
-
-    if has_cidr or many_targets:
+    if has_cidr:
         logger.info(
             "[*] CIDR range detected - performing host discovery first")
         try:
             nmap = NmapHandler(timeout_sec=300)
 
-            logger.info(f"[*] Running host discovery on: {nmap_targets}")
-            discovery_result = nmap.host_discovery(targets=nmap_targets)
+            logger.info(
+                f"[*] Running host discovery on: {args.targets} (excluding: {args.exclude})")
+            discovery_result = nmap.host_discovery(
+                targets=args.targets, exclude=args.exclude)
 
             if discovery_result.exit_code == 0 and discovery_result.stdout:
                 # Track command output
