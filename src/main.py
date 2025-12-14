@@ -14,14 +14,15 @@ from utils.banner import print_banner
 from cli.argument_parser import parse_args
 from handlers.masscan_handler import MasscanHandler
 from handlers.nmap_handler import NmapHandler
+from handlers.smb_handler import SMBHandler
 from parsers.masscan_parser import MasscanParser
 from parsers.nmap_parser import NmapParser
+from parsers.smb_parser import SMBParser
 from models.host_result import HostResult
 from models.enumeration_result import EnumerationResult
 from report.report_generator import generate_report
 from handlers.vulnerability_handler import VulnerabilityHandler
 from parsers.vulnerability_parser import parse_searchsploit_json
-
 
 
 def display_masscan_results(hosts_data):
@@ -121,7 +122,7 @@ def populate_host_results(nmap_hosts):
                         port=int(port_num),
                         protocol=protocol
                     )
-                    
+
                     # Get service version if available (from nmap output)
                     service_version = ""
                     if isinstance(port, dict):
@@ -141,7 +142,8 @@ def populate_host_results(nmap_hosts):
 
                         # Parse searchsploit JSON output
                         if ss_result.exit_code == 0:
-                            exploits = parse_searchsploit_json(ss_result.raw_json)
+                            exploits = parse_searchsploit_json(
+                                ss_result.raw_json)
                         else:
                             exploits = []
 
@@ -306,6 +308,44 @@ def main():
         f"[+] Created data models for {len(enumeration_result.hosts)} hosts")
 
     # ============================================================
+    # STAGE 3.5: SMB Enumeration (if port 445 detected)
+    # ============================================================
+    smb_results = {}
+    smb_hosts = []
+
+    # Identify hosts with SMB port 445
+    for host_data in nmap_hosts:
+        ports = host_data.get('services') or host_data.get('ports', [])
+        for port in ports:
+            if isinstance(port, dict) and port.get('port') == 445:
+                ip = host_data.get('ip') or host_data.get('host')
+                if ip:
+                    smb_hosts.append(ip)
+                break
+
+    if smb_hosts:
+        logger.info(f"[*] {len(smb_hosts)} hosts with SMB (port 445) detected")
+        try:
+            smb = SMBHandler(timeout_sec=120)
+            for ip in smb_hosts:
+                try:
+                    logger.info(f"[*] Running SMB enumeration on {ip}...")
+                    result = smb.enumerate_target(ip)
+                    if result.exit_code == 0:
+                        parser = SMBParser()
+                        smb_results[ip] = parser.parse(result.stdout)
+                        logger.info(f"[+] SMB enumeration successful for {ip}")
+                    elif result.stderr:
+                        logger.warning(
+                            f"[!] SMB enumeration stderr for {ip}: {result.stderr}")
+                except (RuntimeError, TimeoutError) as e:
+                    logger.warning(f"[!] SMB enumeration failed for {ip}: {e}")
+        except RuntimeError as e:
+            logger.error(f"[!] SMB tool unavailable: {e}")
+    else:
+        logger.info("[*] No SMB targets detected (port 445 not found)")
+
+    # ============================================================
     # STAGE 4: Generate Report
     # ============================================================
     logger.info("[*] Generating report...")
@@ -319,7 +359,7 @@ def main():
 
     try:
         # Generate and save report
-        generate_report(enumeration_result.hosts, output_file)
+        generate_report(enumeration_result.hosts, output_file, smb_results)
         logger.info(f"[+] Report saved to: {output_file}")
 
         # Display success message
@@ -335,8 +375,6 @@ def main():
         logger.error(f"[!] Report generation failed: {e}")
 
     logger.info("[✓] Enumeration workflow complete")
-
-
 
 
 if __name__ == "__main__":
