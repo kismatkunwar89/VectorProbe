@@ -1,32 +1,51 @@
-## Relevant Files (Final Corrected Version)
+## Relevant Files (Updated to Reflect Current Progress)
 
 - `src/main.py` - Your main entry point.
 - `requirements.txt` - Lists all Python dependencies.
-- `pytest.ini` - **New file** for configuring the test framework.
+- `pytest.ini` - For configuring the test framework.
 - `src/cli/argument_parser.py` - Your CLI argument parsing module.
 - `src/handlers/` - Your "scanners" directory.
-  - `masscan_handler.py` - **New file** for wrapping `masscan`.
+  - `masscan_handler.py` - For wrapping `masscan`.
   - `nmap_handler.py` - Wraps `nmap`.
   - `smb_handler.py` - For `enum4linux-ng` and `smbmap`.
   - `http_handler.py` - For `nikto`, `gobuster`, and banner grabbing.
   - `dns_handler.py` - For `dnsrecon`.
   - `vulnerability_handler.py` - For `searchsploit`.
 - `src/parsers/` - Your directory for parsing logic.
-  - `masscan_parser.py` - **New file** for parsing `masscan` output.
+  - `masscan_parser.py` - For parsing `masscan` output.
   - `nmap_parser.py` - Parses `nmap` output.
   - `smb_parser.py` - For `enum4linux-ng` and `smbmap`.
   - `http_parser.py` - For `nikto` and `gobuster`.
   - `dns_parser.py` - For `dnsrecon`.
   - `vulnerability_parser.py` - For `searchsploit`.
 - `src/models/` - Your data models.
+  - `enumeration_result.py`
+  - `host_result.py`
+  - `service_result.py`
 - `src/report/report_generator.py` - Your report generation module.
 - `src/utils/` - Your utilities.
+  - `shell.py`
+  - `target_parser.py`
+  - `dns_utils.py`
+  - `network_utils.py`
+  - `logger.py`
+  - `validation.py`
+  - `banner.py`
+  - `decorators.py`
+  - `query_builder.py`
 - `tests/` - Your directory for unit tests.
-  - `fixtures/` - **New directory** to store sample outputs from tools.
+  - `fixtures/` - To store sample outputs from tools.
+  - `test_orchestration.py` - End-to-end test.
+  - `test_masscan_parser.py`
+  - `test_nmap_parser.py`
+  - `test_smb_parser.py`
+  - `test_vulnerability_parser.py`
+  - `test_target_parser.py`
+  - `test_host_model.py`
 
 ---
 
-## Tasks (with Assignments)
+## Tasks (with Assignments - Updated)
 
 - [x] 1.0 **Project Setup and Core Structure**
   > *__Covered by:__ Kismat & Gamvirta*
@@ -104,12 +123,11 @@
     - [ ] 6.4.1 Create `dns_handler.py` and `dns_parser.py`.
     - [ ] 6.4.2 **Write unit tests using fixtures.**
 
-- [ ] 7.0 **Stage 5: Report Generation**
-  > *__To Do:__ Both*
+- [x] 7.0 **Stage 5: Report Generation**
+  > *__Covered by:__ Kismat*
   - [x] 7.1 Initial `report_generator.py` created.
-    > *__Covered by:__ Kismat*
-  - [ ] 7.2 Add a "Scan Summary & Cross-Host Analysis" section.
-  - [ ] 7.3 Ensure the report includes sections for all new tools.
+  - [x] 7.2 Add a "Scan Summary & Cross-Host Analysis" section.
+  - [x] 7.3 Ensure the report includes sections for all new tools.
 
 - [ ] 8.0 **Finalization and Documentation**
   > *__To Do:__ Both*
