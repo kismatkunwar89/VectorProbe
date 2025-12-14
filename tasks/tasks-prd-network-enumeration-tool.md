@@ -122,6 +122,20 @@
     > *__Cancelled:__ Not explicitly required by project.md (beyond the DNS Safety Feature, which is done)*
     - [c] 6.4.1 Create `dns_handler.py` and `dns_parser.py`.
     - [c] 6.4.2 **Write unit tests using fixtures.**
+  - [ ] 6.5 **Active Directory Enumeration (Unauthenticated)**
+    > *__To Do:__ Kismat*
+    - [ ] 6.5.1 Create `ad_handler.py` and `ad_parser.py` files.
+    - [ ] 6.5.2 In `main.py`, implement trigger logic to run the AD handler if LDAP/Kerberos ports are found or if SMB enumeration indicates domain membership.
+    - [ ] 6.5.3 Implement LDAP `rootDSE` enumeration (`nmap --script ldap-rootdse`) in the handler and parser.
+    - [ ] 6.5.4 Implement LDAP `baseDSE` enumeration (`ldapsearch`) in the handler and parser.
+    - [ ] 6.5.5 Implement SMB security posture enumeration (`nmap --script smb-enum-domains,smb-security-mode`) in the handler and parser.
+    - [ ] 6.5.6 Implement NetBIOS role enumeration (`nmblookup -A`) in the handler and parser.
+    - [ ] 6.5.7 Implement DNS SRV record enumeration (`dig SRV ...`) in the handler and parser.
+    - [ ] 6.5.8 Implement Kerberos info enumeration (`nmap --script krb5-info`) in the handler and parser.
+    - [ ] 6.5.9 Update `report_generator.py` to add the new `### Active Directory Enumeration (Unauthenticated)` section with all required subsections.
+    - [ ] 6.5.10 Write unit tests in `tests/test_ad_parser.py` using fixtures for all new tool outputs.
+    - [ ] 6.5.11 Update `README.md` with new dependencies (`ldap-utils`, `dnsutils`) and `limitations.md` as per the plan.
+
 
 - [x] 7.0 **Stage 5: Report Generation**
   > *__Covered by:__ Kismat*
