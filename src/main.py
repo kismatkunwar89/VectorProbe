@@ -297,12 +297,17 @@ def main():
                 'output': result.stdout
             })
 
+            # Debug: Log first 500 chars of Nmap output
+            logger.info(f"[DEBUG] Nmap stdout (first 500 chars):\n{result.stdout[:500]}")
+            logger.info(f"[DEBUG] Nmap stdout length: {len(result.stdout)} chars")
+            
             # Parse Nmap output
             parser = NmapParser(result.stdout)
             parser.parse()
             nmap_hosts = parser.hosts
             logger.info(
                 f"[+] Nmap discovered {len(nmap_hosts)} hosts with services")
+            logger.info(f"[DEBUG] Parser returned hosts: {nmap_hosts}")
 
             # Display Nmap results
             display_nmap_results(nmap_hosts)
