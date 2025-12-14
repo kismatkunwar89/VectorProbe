@@ -241,8 +241,21 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
 
                     # Only render section if there are unique exploits
                     if unique_exploits:
-                        file.write(
-                            f"**Exploits for {service['name']} ({len(unique_exploits)})**\n\n")
+                        # Build descriptive heading with product info
+                        product = service.get('product') or service.get(
+                            'service_name') or service['name']
+                        port = service.get('port', '?')
+                        service_name = service['name']
+
+                        # Format: "Potential Exploits - {Product} ({service}/{port})"
+                        heading = f"**Potential Exploits - {product}"
+                        if product.lower() != service_name.lower():
+                            heading += f" ({service_name}/{port})"
+                        else:
+                            heading += f" ({port}/tcp)"
+                        heading += f" [{len(unique_exploits)} found]**\n\n"
+
+                        file.write(heading)
                         for exploit in unique_exploits:
                             title = exploit.get('title') or 'Unnamed exploit'
                             edb_id = exploit.get('edb_id')
