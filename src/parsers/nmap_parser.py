@@ -46,14 +46,14 @@ class NmapParser:
                 continue
 
             # Detect host line: "Nmap scan report for 192.168.1.1"
-            if 'Nmap scan report for' in stripped:
+            if 'scan report for' in stripped.lower():
                 if current_host is not None and current_host.get('host'):
                     self.hosts.append(current_host)
                     logger.info(
                         f"[PARSER] Added host: {current_host['host']} with {len(current_host['ports'])} ports")
 
                 # Extract IP
-                match = re.search(r'Nmap scan report for\s+(.+)', stripped)
+                match = re.search(r'[Nn]map scan report for\s+(.+)', stripped)
                 if match:
                     host_text = match.group(1).strip()
                     ip_value = None
@@ -79,10 +79,10 @@ class NmapParser:
                 continue
 
             # Skip other Nmap header lines (only after host detection)
-            if any(stripped.startswith(skip) for skip in ['Starting Nmap', 'Nmap done', 'Not shown:', 'Host is up', 'MAC Address:',
-                                                          'Network Distance:', 'No exact OS', 'OS and Service', 'TCP/IP fingerprint:',
-                                                          'OS:', 'SEQ(', 'OPS(', 'WIN(', 'ECN(', 'T1(', 'T2(', 'T3(', 'T4(', 'T5(',
-                                                          'T6(', 'T7(', 'U1(', 'IE(']):
+            if any(stripped.lower().startswith(skip.lower()) for skip in ['Starting Nmap', 'Nmap done', 'Not shown:', 'Host is up', 'MAC Address:',
+                                                                          'Network Distance:', 'No exact OS', 'OS and Service', 'TCP/IP fingerprint:',
+                                                                          'OS:', 'SEQ(', 'OPS(', 'WIN(', 'ECN(', 'T1(', 'T2(', 'T3(', 'T4(', 'T5(',
+                                                                          'T6(', 'T7(', 'U1(', 'IE(']):
                 logger.debug(
                     f"[PARSER] Line {i}: SKIPPED (header): {line[:60]}")
                 continue
@@ -110,8 +110,8 @@ class NmapParser:
                 logger.debug(f"[PARSER] Line {i}: SKIPPED (NSE script output)")
                 continue
 
-            # Detect OS line: "OS details: Linux 5.4"
-            elif current_host and 'OS details:' in stripped:
+            # Detect OS line: "OS details: Linux 5.4" (case-insensitive)
+            elif current_host and 'os details:' in stripped.lower():
                 match = re.search(r'OS details:\s+(.+)', stripped)
                 if match:
                     current_host['os'] = match.group(1).strip()
