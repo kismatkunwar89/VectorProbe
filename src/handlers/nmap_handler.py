@@ -126,8 +126,12 @@ class NmapHandler:
         Returns:
             CommandResult with command, stdout, stderr, exit_code
         """
-        # Convert comma-separated targets to space-separated (Nmap expects spaces)
-        nmap_targets = targets.replace(',', ' ')
+        # Normalize targets and split on commas/whitespace for subprocess
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for Nmap scan.")
 
         cmd = [
             "nmap",
@@ -138,7 +142,7 @@ class NmapHandler:
             "-Pn",      # Skip ping (useful in restricted networks)
             "-oN",      # Normal output format
             "-",        # Output to stdout
-            nmap_targets
+            *target_args
         ]
         return self._run(cmd)
 
