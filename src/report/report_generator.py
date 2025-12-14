@@ -154,7 +154,7 @@ def format_topology_section(enumeration_results):
     return output
 
 
-def generate_report(enumeration_results, output_file, smb_results=None, command_outputs=None):
+def generate_report(enumeration_results, output_file, smb_results=None, command_outputs=None, netbios_results=None):
     """
     Generates a Markdown report based on the enumeration results.
 
@@ -163,6 +163,7 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
         output_file (str): The path to the output file where the report will be saved.
         smb_results (dict): Optional SMB enumeration results keyed by IP address.
         command_outputs (list): Optional list of executed commands and their outputs.
+        netbios_results (dict): Optional NetBIOS enumeration results keyed by IP address.
     """
     with open(output_file, 'w') as file:
         # Write header
@@ -176,6 +177,8 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
         file.write(f"- **Scan Type:** Masscan + Nmap\n")
         if smb_results:
             file.write(f"- **SMB Enumeration:** Enabled\n")
+        if netbios_results:
+            file.write(f"- **NetBIOS Enumeration:** Enabled\n")
         file.write("\n")
 
         # Write network topology
@@ -204,8 +207,10 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
             normalized_services = [_normalize_service_entry(s)
                                    for s in services]
             if normalized_services:
-                file.write("| Port | Protocol | Service | Fingerprint | Exploits |\n")
-                file.write("|------|----------|---------|-------------|----------|\n")
+                file.write(
+                    "| Port | Protocol | Service | Fingerprint | Exploits |\n")
+                file.write(
+                    "|------|----------|---------|-------------|----------|\n")
                 for service in normalized_services:
                     file.write(
                         f"| {service['port']} | {service['protocol']} | {service['name']} | {service['fingerprint']} | {service['exploit_summary']} |\n")
@@ -235,6 +240,27 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
             if smb_results and host_ip in smb_results:
                 smb_section = format_smb_section(smb_results[host_ip])
                 file.write(smb_section)
+
+            # NetBIOS results if available
+            if netbios_results and host_ip in netbios_results:
+                netbios_data = netbios_results[host_ip]
+                file.write("#### NetBIOS Enumeration\n\n")
+
+                if netbios_data.get('workgroup'):
+                    file.write(
+                        f"**Workgroup:** {netbios_data['workgroup']}\n\n")
+
+                if netbios_data.get('names'):
+                    file.write("**NetBIOS Names:**\n")
+                    for name in netbios_data['names']:
+                        file.write(f"- {name}\n")
+                    file.write("\n")
+
+                if netbios_data.get('addresses'):
+                    file.write("**Addresses:**\n")
+                    for addr in netbios_data['addresses']:
+                        file.write(f"- {addr}\n")
+                    file.write("\n")
 
             # Unverified info
             unverified = result.get('unverified_info', [])

@@ -16,9 +16,11 @@ from cli.argument_parser import parse_args
 from handlers.masscan_handler import MasscanHandler
 from handlers.nmap_handler import NmapHandler
 from handlers.smb_handler import SMBHandler
+from handlers.netbios_handler import NetBIOSHandler
 from parsers.masscan_parser import MasscanParser
 from parsers.nmap_parser import NmapParser
 from parsers.smb_parser import SMBParser
+from parsers.netbios_parser import NetBIOSParser
 from models.host_result import HostResult
 from models.enumeration_result import EnumerationResult
 from report.report_generator import generate_report
@@ -466,6 +468,51 @@ def main():
         logger.info("[*] No SMB targets detected (port 445 not found)")
 
     # ============================================================
+    # STAGE 3.6: NetBIOS Enumeration (if port 139 detected)
+    # ============================================================
+    netbios_results = {}
+    netbios_hosts = []
+
+    # Identify hosts with NetBIOS port 139
+    for host_data in nmap_hosts:
+        ports = host_data.get('services') or host_data.get('ports', [])
+        for port in ports:
+            if isinstance(port, dict) and port.get('port') == 139:
+                ip = host_data.get('ip') or host_data.get('host')
+                if ip:
+                    netbios_hosts.append(ip)
+                break
+
+    if netbios_hosts:
+        logger.info(
+            f"[*] {len(netbios_hosts)} hosts with NetBIOS (port 139) detected")
+        for ip in netbios_hosts:
+            try:
+                logger.info(f"[*] Running NetBIOS enumeration on {ip}...")
+                netbios = NetBIOSHandler(target=ip)
+                output = netbios.enumerate_netbios()
+
+                if output and output.strip():
+                    # Track command output
+                    command_outputs.append({
+                        'tool': 'nmblookup',
+                        'command': f'nmblookup -M {ip}',
+                        'output': output,
+                        'target': ip
+                    })
+
+                    parser = NetBIOSParser()
+                    netbios_results[ip] = parser.parse(output)
+                    logger.info(f"[+] NetBIOS enumeration successful for {ip}")
+                else:
+                    logger.warning(
+                        f"[!] NetBIOS enumeration returned empty output for {ip}")
+            except Exception as e:
+                logger.warning(f"[!] NetBIOS enumeration failed for {ip}: {e}")
+    else:
+        logger.info("[*] No NetBIOS targets detected (port 139 not found)")
+
+    # ============================================================
     # STAGE 4: Generate Report
     # ============================================================
     logger.info("[*] Generating report...")
@@ -480,7 +527,7 @@ def main():
     try:
         # Generate and save report
         generate_report(enumeration_result.hosts, output_file,
-                        smb_results, command_outputs)
+                        smb_results, command_outputs, netbios_results)
         logger.info(f"[+] Report saved to: {output_file}")
 
         # Display success message
