@@ -97,8 +97,8 @@
     - [ ] 6.2.2 **Write unit tests using fixtures.**
   - [x] 6.3 **SMB Enumeration:**
     > *__Covered by:__ Gamvirta (initial) & Kismat (enhancements)*
-    - [ ] 6.3.1 **Write unit tests using fixtures.**
-      > *__To Do:__ Kismat*
+    - [x] 6.3.1 **Write unit tests using fixtures.**
+      > *__Covered by:__ Kismat (27 tests - all passing, 4 fixture files)*
   - [ ] 6.4 **DNS Enumeration:**
     > *__To Do:__ Gamvirta*
     - [ ] 6.4.1 Create `dns_handler.py` and `dns_parser.py`.
