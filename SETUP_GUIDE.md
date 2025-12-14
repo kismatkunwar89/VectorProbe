@@ -54,7 +54,7 @@ sudo searchsploit -u
 sudo pacman -S python python-pip nmap exploitdb git
 
 # Install optional tools
-sudo pacman -S masscan
+sudo pacman -S masscan enum4linux-ng
 ```
 
 ### On macOS:
@@ -68,6 +68,9 @@ brew install python3 nmap exploitdb git
 
 # Install optional tools
 brew install masscan
+
+# For enum4linux-ng on macOS (install via pip):
+pip install enum4linux-ng
 ```
 
 ---

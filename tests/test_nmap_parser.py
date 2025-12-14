@@ -182,6 +182,47 @@ class TestNmapParserMultipleHosts:
         assert host2['os'] == 'Windows Server 2019'
 
 
+class TestNmapParserRealOutput:
+    """Test parsing of actual Nmap normal output."""
+
+    def test_parse_real_normal_output(self):
+        """Ensure real Nmap output is parsed correctly."""
+        nmap_output = """# Nmap 7.95 scan initiated Sun Dec 14 13:08:43 2025 as: /usr/lib/nmap/nmap -sS -sV -sC -O -Pn -oN - 10.248.1.1
+Nmap scan report for demo-host (10.0.0.5)
+Host is up (0.00018s latency).
+Not shown: 998 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.9p1 Debian 3 (protocol 2.0)
+53/tcp open  domain  dnsmasq 2.90
+| dns-nsid:
+|_  bind.version: dnsmasq-2.90
+MAC Address: F0:DB:30:76:EE:EB (Yottabyte)
+
+Nmap scan report for 10.248.1.1
+Host is up (0.00018s latency).
+PORT   STATE SERVICE VERSION
+443/tcp open  https   Apache httpd 2.4.58
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Nmap done: 2 IP addresses (2 hosts up) scanned in 7.42 seconds
+"""
+
+        parser = NmapParser(nmap_output)
+        parser.parse()
+
+        assert len(parser.hosts) == 2
+        first_host = parser.hosts[0]
+        second_host = parser.hosts[1]
+
+        assert first_host['ip'] == '10.0.0.5'
+        assert '22/tcp/open/ssh' in first_host['ports']
+        assert '53/tcp/open/domain' in first_host['ports']
+
+        assert second_host['host'] == '10.248.1.1'
+        assert second_host['ip'] == '10.248.1.1'
+        assert second_host['ports'] == ['443/tcp/open/https']
+
+
 class TestNmapParserEdgeCases:
     """Test edge cases and error conditions."""
 

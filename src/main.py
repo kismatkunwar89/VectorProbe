@@ -298,9 +298,11 @@ def main():
             })
 
             # Debug: Log first 500 chars of Nmap output
-            logger.info(f"[DEBUG] Nmap stdout (first 500 chars):\n{result.stdout[:500]}")
-            logger.info(f"[DEBUG] Nmap stdout length: {len(result.stdout)} chars")
-            
+            logger.info(
+                f"[DEBUG] Nmap stdout (first 500 chars):\n{result.stdout[:500]}")
+            logger.info(
+                f"[DEBUG] Nmap stdout length: {len(result.stdout)} chars")
+
             # Parse Nmap output
             parser = NmapParser(result.stdout)
             parser.parse()
