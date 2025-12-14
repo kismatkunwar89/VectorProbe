@@ -247,6 +247,19 @@ MAC Address: F0:DB:30:76:EE:EB (Yottabyte)
         assert ssh_service.get('product', '').startswith('OpenSSH')
         assert ssh_service.get('version') == '8.9'
 
+    def test_real_fixture_detection(self):
+        """Ensure large real-world scans are parsed instead of misdetected as custom."""
+        with open('tests/fixtures/nmap_real_scan.txt', 'r') as fixture:
+            nmap_output = fixture.read()
+
+        parser = NmapParser(nmap_output)
+        parser.parse()
+
+        assert len(parser.hosts) == 5
+        dc_host = next((host for host in parser.hosts if host.get('ip') == '10.248.1.2'), None)
+        assert dc_host is not None
+        assert '53/tcp/open/domain' in dc_host.get('ports', [])
+
 
 class TestNmapParserEdgeCases:
     """Test edge cases and error conditions."""

@@ -11,12 +11,16 @@ class NmapParser:
 
     def parse(self):
         """Parse both real Nmap output and custom format"""
-        # Check if this is custom format (has "Host:" lines) or real Nmap output
-        if 'Host:' in self.nmap_output and not 'Starting Nmap' in self.nmap_output:
+        output_lower = self.nmap_output.lower()
+
+        if 'nmap scan report for' in output_lower:
+            logger.info("[PARSER] Detected REAL NMAP format")
+            self._parse_real_nmap_format()
+        elif re.search(r'^\s*Host:', self.nmap_output, re.MULTILINE):
             logger.info("[PARSER] Detected CUSTOM format")
             self._parse_custom_format()
         else:
-            logger.info("[PARSER] Detected REAL NMAP format")
+            logger.info("[PARSER] Unable to auto-detect format, defaulting to REAL NMAP parser")
             self._parse_real_nmap_format()
         logger.info(f"[PARSER] Total hosts found: {len(self.hosts)}")
 
@@ -83,6 +87,7 @@ class NmapParser:
                         'host': host_text,
                         'ip': ip_value or host_text,
                         'ports': [],
+                        'services': [],
                         'os': 'Unknown',
                         'hostname': None,
                         'domain': None
@@ -106,20 +111,31 @@ class NmapParser:
             # Detect port lines: "22/tcp  open   ssh"
             # Port lines start with a digit (the port number)
             elif current_host and stripped and stripped[0].isdigit() and '/' in line and ('tcp' in line or 'udp' in line):
-                parts = stripped.split()
+                parts = re.split(r'\s+', stripped, maxsplit=3)
                 if len(parts) >= 2:
                     port_protocol = parts[0]  # e.g., "22/tcp"
                     state = parts[1]  # e.g., "open"
                     service = parts[2] if len(parts) > 2 else 'unknown'
+                    version_info = parts[3] if len(parts) == 4 else ''
 
                     logger.info(
                         f"[PARSER] ✓ PORT found on line {i}: {port_protocol} {state} {service}")
 
-                    if state == 'open' or state == 'filtered':
+                    if state.lower() in ('open', 'filtered'):
                         current_host['ports'].append(
                             f"{port_protocol}/{state}/{service}")
                         logger.info(
                             f"[PARSER] ✓ Added port: {port_protocol}/{state}/{service}")
+
+                        service_entry = self._create_service_entry(
+                            port_protocol,
+                            state,
+                            service,
+                            version_info
+                        )
+                        if service_entry:
+                            current_host.setdefault('services', [])
+                            current_host['services'].append(service_entry)
 
             # Collect NSE script output (lines starting with |)
             elif stripped.startswith('|'):
@@ -216,3 +232,59 @@ class NmapParser:
                 host['domain'] = nse_metadata[field]
                 logger.info(f"[PARSER] Extracted domain from NSE ({field}): {nse_metadata[field]}")
                 break
+
+    def _create_service_entry(self, port_protocol, state, service_name, version_info):
+        """Return structured service metadata for a discovered port."""
+        if '/' not in port_protocol:
+            return None
+
+        port_str, protocol = port_protocol.split('/', 1)
+        protocol = protocol.lower().strip()
+        port_num = None
+        try:
+            port_num = int(port_str)
+        except ValueError:
+            logger.debug(
+                f"[PARSER] Unable to parse port number from: {port_protocol}")
+
+        product = None
+        version = None
+        extrainfo = None
+        if version_info:
+            product, version, extrainfo = self._split_product_version(version_info)
+
+        service_entry = {
+            'port': port_num if port_num is not None else port_str,
+            'protocol': protocol or 'tcp',
+            'state': state.lower(),
+            'name': service_name,
+            'service': service_name,
+            'service_name': service_name
+        }
+
+        if product:
+            service_entry['product'] = product
+        if version:
+            service_entry['version'] = version
+        if extrainfo:
+            service_entry['extrainfo'] = extrainfo
+        if version_info and not product:
+            service_entry['product'] = version_info.strip()
+
+        return service_entry
+
+    def _split_product_version(self, version_info):
+        """Split an Nmap VERSION column into (product, version, extrainfo)."""
+        cleaned = version_info.strip()
+        if not cleaned:
+            return None, None, None
+
+        match = re.search(r'(\d+(?:\.\d+)+|\d+)', cleaned)
+        if match:
+            product = cleaned[:match.start()].strip()
+            version = match.group(1)
+            extra = cleaned[match.end():].strip()
+            extra = extra.strip('-:,() ')
+            return product or None, version, extra or None
+
+        return cleaned, None, None
