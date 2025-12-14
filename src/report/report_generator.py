@@ -63,6 +63,58 @@ def format_smb_section(smb_data):
     return output
 
 
+def format_topology_section(enumeration_results):
+    """
+    Format network topology as Markdown table organized by subnet.
+
+    Args:
+        enumeration_results (dict): Dictionary of host enumeration results.
+
+    Returns:
+        str: Formatted Markdown network topology section
+    """
+    if not enumeration_results:
+        return ""
+
+    output = "## Network Topology\n\n"
+
+    # Group hosts by subnet
+    subnets = {}
+    for ip, data in enumeration_results.items():
+        # Extract subnet (first 3 octets)
+        subnet = '.'.join(ip.split('.')[:3]) + '.0/24'
+        if subnet not in subnets:
+            subnets[subnet] = []
+        subnets[subnet].append((ip, data))
+
+    # Render each subnet
+    for subnet in sorted(subnets.keys()):
+        output += f"### {subnet}\n\n"
+        output += "| IP | Hostname | OS | Services | Status |\n"
+        output += "|-------|----------|----|---------|---------|\n"
+
+        for ip, data in sorted(subnets[subnet], key=lambda x: x[0]):
+            os_type = data.get('os_type', 'Unknown')
+            hostname = data.get('hostname', 'N/A')
+            services = data.get('services', [])
+
+            # Format services (show first 3, truncate if more)
+            if services:
+                service_str = ', '.join(services[:3])
+                if len(services) > 3:
+                    service_str += f"... (+{len(services) - 3})"
+                status = "🟢 Online"
+            else:
+                service_str = "None"
+                status = "🔴 Offline"
+
+            output += f"| {ip} | {hostname} | {os_type} | {service_str} | {status} |\n"
+
+        output += "\n"
+
+    return output
+
+
 def generate_report(enumeration_results, output_file, smb_results=None, command_outputs=None):
     """
     Generates a Markdown report based on the enumeration results.
@@ -86,6 +138,11 @@ def generate_report(enumeration_results, output_file, smb_results=None, command_
         if smb_results:
             file.write(f"- **SMB Enumeration:** Enabled\n")
         file.write("\n")
+
+        # Write network topology
+        if enumeration_results:
+            topology_section = format_topology_section(enumeration_results)
+            file.write(topology_section)
 
         # Write detailed host information
         file.write("## Discovered Hosts\n\n")
