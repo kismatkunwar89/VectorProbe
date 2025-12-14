@@ -274,10 +274,12 @@ def main():
     # ============================================================
     live_hosts = []
 
-    # Check if we have CIDR ranges that would benefit from host discovery
-    has_cidr = "/" in nmap_targets
+    # Check if original targets had CIDR ranges that would benefit from host discovery
+    has_cidr = "/" in args.targets
+    # Also check if we have many resolved targets (indicating CIDR expansion)
+    many_targets = len(nmap_targets.split(',')) > 10
 
-    if has_cidr:
+    if has_cidr or many_targets:
         logger.info(
             "[*] CIDR range detected - performing host discovery first")
         try:
