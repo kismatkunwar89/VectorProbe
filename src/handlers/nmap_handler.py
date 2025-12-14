@@ -126,6 +126,9 @@ class NmapHandler:
         Returns:
             CommandResult with command, stdout, stderr, exit_code
         """
+        # Convert comma-separated targets to space-separated (Nmap expects spaces)
+        nmap_targets = targets.replace(',', ' ')
+
         cmd = [
             "nmap",
             "-sS",      # TCP SYN scan (half-open)
@@ -135,7 +138,7 @@ class NmapHandler:
             "-Pn",      # Skip ping (useful in restricted networks)
             "-oN",      # Normal output format
             "-",        # Output to stdout
-            targets
+            nmap_targets
         ]
         return self._run(cmd)
 
