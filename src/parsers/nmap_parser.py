@@ -35,40 +35,62 @@ class NmapParser:
 
         current_host = None
 
-        for i, line in enumerate(lines):
+        for i, raw_line in enumerate(lines):
+            line = raw_line.rstrip('\n')
+            stripped = line.strip()
+
             # Skip empty lines and comment lines
-            if not line.strip() or line.startswith('#') or line.startswith('Starting') or line.startswith('Nmap'):
+            if not stripped or stripped.startswith('#'):
                 logger.debug(
                     f"[PARSER] Line {i}: SKIPPED (empty/comment): {line[:60]}")
                 continue
 
-            # Skip Nmap header lines
-            if any(line.startswith(skip) for skip in ['Not shown:', 'Host is up', 'MAC Address:', 'Network Distance:', 'No exact OS', 'OS and Service', 'TCP/IP fingerprint:', 'OS:', 'SEQ(', 'OPS(', 'WIN(', 'ECN(', 'T1(', 'T2(', 'T3(', 'T4(', 'T5(', 'T6(', 'T7(', 'U1(', 'IE(', 'Nmap done']):
-                logger.debug(
-                    f"[PARSER] Line {i}: SKIPPED (header): {line[:60]}")
-                continue
-
             # Detect host line: "Nmap scan report for 192.168.1.1"
-            if 'Nmap scan report for' in line:
+            if 'Nmap scan report for' in stripped:
                 if current_host is not None and current_host.get('host'):
                     self.hosts.append(current_host)
                     logger.info(
                         f"[PARSER] Added host: {current_host['host']} with {len(current_host['ports'])} ports")
 
                 # Extract IP
-                match = re.search(r'for\s+([0-9a-f:.]+)', line)
+                match = re.search(r'Nmap scan report for\s+(.+)', stripped)
                 if match:
+                    host_text = match.group(1).strip()
+                    ip_value = None
+
+                    # Handle "hostname (IP)" output
+                    if host_text.endswith(')') and '(' in host_text:
+                        ip_candidate = host_text[host_text.rfind('(') + 1:-1]
+                        if re.fullmatch(r'[0-9a-fA-F:.]+', ip_candidate):
+                            ip_value = ip_candidate
+                            host_text = ip_candidate
+
+                    elif re.fullmatch(r'[0-9a-fA-F:.]+', host_text):
+                        ip_value = host_text
+
                     current_host = {
-                        'host': match.group(1),
+                        'host': host_text,
+                        'ip': ip_value or host_text,
                         'ports': [],
                         'os': 'Unknown'
                     }
                     logger.info(f"[PARSER] Found host: {current_host['host']}")
 
+                continue
+
+            # Skip other Nmap header lines (only after host detection)
+            if any(stripped.startswith(skip) for skip in ['Starting Nmap', 'Nmap done', 'Not shown:', 'Host is up', 'MAC Address:',
+                                                          'Network Distance:', 'No exact OS', 'OS and Service', 'TCP/IP fingerprint:',
+                                                          'OS:', 'SEQ(', 'OPS(', 'WIN(', 'ECN(', 'T1(', 'T2(', 'T3(', 'T4(', 'T5(',
+                                                          'T6(', 'T7(', 'U1(', 'IE(']):
+                logger.debug(
+                    f"[PARSER] Line {i}: SKIPPED (header): {line[:60]}")
+                continue
+
             # Detect port lines: "22/tcp  open   ssh"
             # Port lines start with a digit (the port number)
-            elif current_host and line and line[0].isdigit() and '/' in line and ('tcp' in line or 'udp' in line):
-                parts = line.split()
+            elif current_host and stripped and stripped[0].isdigit() and '/' in line and ('tcp' in line or 'udp' in line):
+                parts = stripped.split()
                 if len(parts) >= 2:
                     port_protocol = parts[0]  # e.g., "22/tcp"
                     state = parts[1]  # e.g., "open"
@@ -84,13 +106,13 @@ class NmapParser:
                             f"[PARSER] ✓ Added port: {port_protocol}/{state}/{service}")
 
             # Skip lines starting with pipe (| from NSE scripts output)
-            elif line.startswith('|'):
+            elif stripped.startswith('|'):
                 logger.debug(f"[PARSER] Line {i}: SKIPPED (NSE script output)")
                 continue
 
             # Detect OS line: "OS details: Linux 5.4"
-            elif current_host and 'OS details:' in line:
-                match = re.search(r'OS details:\s+(.+)', line)
+            elif current_host and 'OS details:' in stripped:
+                match = re.search(r'OS details:\s+(.+)', stripped)
                 if match:
                     current_host['os'] = match.group(1).strip()
 
