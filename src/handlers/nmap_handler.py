@@ -169,6 +169,34 @@ class NmapHandler:
         cmd = ["nmap", "--traceroute", "-Pn", ip]
         return self._run(cmd)
 
+    @timing
+    def host_discovery(self, targets: str) -> CommandResult:
+        """
+        Fast host discovery using ping sweep (-sn).
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated targets
+                    Examples: "192.168.1.1" or "192.168.1.0/24"
+
+        Returns:
+            CommandResult with greppable output containing live hosts
+        """
+        # Normalize targets and split on commas/whitespace for subprocess
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for host discovery.")
+
+        cmd = [
+            "nmap",
+            "-sn",      # Ping sweep only (no port scan)
+            "-oG",     # Greppable output format
+            "-",       # Output to stdout
+            *target_args
+        ]
+        return self._run(cmd)
+
     @validate_ip
     @timing
     def smb_enum_scan(self, ip: str) -> CommandResult:

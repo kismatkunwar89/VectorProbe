@@ -12,17 +12,16 @@ from datetime import datetime
 from utils.logger import setup_logging
 from utils.banner import print_banner
 from cli.argument_parser import parse_args
-from handlers.masscan_handler import MasscanHandler
 from handlers.nmap_handler import NmapHandler
 from handlers.smb_handler import SMBHandler
 from handlers.netbios_handler import NetBIOSHandler
-from parsers.masscan_parser import MasscanParser
 from parsers.nmap_parser import NmapParser
 from parsers.smb_parser import SMBParser
 from parsers.netbios_parser import NetBIOSParser
 from models.host_result import HostResult
 from models.enumeration_result import EnumerationResult
 from report.report_generator import generate_report
+from core.host_discovery import parse_and_resolve_targets
 from handlers.vulnerability_handler import VulnerabilityHandler
 from parsers.vulnerability_parser import (
     parse_searchsploit_json,
@@ -33,37 +32,30 @@ from utils.query_builder import build_searchsploit_query
 MAX_EXPLOITS_PER_SERVICE = 5
 
 
-def display_masscan_results(hosts_data):
-    """Display formatted Masscan results."""
-    print("\n" + "="*60)
-    print("[*] STAGE 1: FAST DISCOVERY (Masscan)")
-    print("="*60)
-    if not hosts_data:
-        print("[!] No hosts discovered")
-        return
+def extract_live_hosts(nmap_output: str) -> list:
+    """Extract live host IPs from nmap -sn greppable output.
 
-    for host_info in hosts_data:
-        ip = host_info.get('ip') or host_info.get('host', 'Unknown')
-        ports = host_info.get('services') or host_info.get('ports', [])
-        port_count = len(ports)
+    Args:
+        nmap_output: Raw nmap -sn -oG output
 
-        if port_count == 0:
-            print(f"  Host: {ip} → [No open ports]")
-        else:
-            port_list = []
-            for port in ports:
-                if isinstance(port, dict):
-                    port_list.append(str(port.get('port', port)))
-                else:
-                    port_list.append(str(port))
-            print(
-                f"  Host: {ip} → Ports: {', '.join(port_list)} ({port_count} open)")
+    Returns:
+        List of live host IP addresses
+    """
+    live_hosts = []
+    for line in nmap_output.split('\n'):
+        if line.startswith('Host:') and 'Status: Up' in line:
+            # Extract IP from "Host: 192.168.1.1 () Status: Up"
+            parts = line.split()
+            if len(parts) >= 2:
+                ip = parts[1]
+                live_hosts.append(ip)
+    return live_hosts
 
 
 def display_nmap_results(hosts_data):
     """Display formatted Nmap results."""
     print("\n" + "="*60)
-    print("[*] STAGE 2: DEEP SCAN (Nmap)")
+    print("[*] STAGE 1: DEEP SCAN (Nmap)")
     print("="*60)
     if not hosts_data:
         print("[!] No hosts discovered")
@@ -226,7 +218,7 @@ def main():
     1. Displays the ASCII banner
     2. Sets up logging
     3. Parses command-line arguments
-    4. Executes the scanning workflow (Masscan if --fast-scan, then Nmap)
+    4. Executes the scanning workflow (Host Discovery, then Nmap)
     5. Populates data models
     6. Generates report
     """
@@ -242,80 +234,87 @@ def main():
     # Parse command-line arguments
     args = parse_args()
     logger.info(
-        f"Arguments parsed: targets={args.targets}, fast_scan={args.fast_scan}, exclude={args.exclude}")
+        f"Arguments parsed: targets={args.targets}, exclude={args.exclude}")
 
-    masscan_hosts = []
     nmap_targets = args.targets
     scan_mode = "standard"
     command_outputs = []  # Track all executed commands
 
     # ============================================================
-    # STAGE 1: Fast Discovery (Masscan) - Optional
+    # STAGE 0: Target Resolution and Exclusion Processing
     # ============================================================
-    if args.fast_scan:
+    logger.info("[*] Resolving targets and processing exclusions...")
+    try:
+        resolved_targets, dns_targets = parse_and_resolve_targets(
+            targets=args.targets,
+            exclude=args.exclude,
+            no_prompt=args.no_prompt
+        )
+
         logger.info(
-            "[*] Fast scan mode enabled - using Masscan for initial host discovery")
-        scan_mode = "fast-scan+nmap"
+            f"[+] Resolved {len(resolved_targets)} target hosts after exclusions")
 
+        # Convert resolved targets back to comma-separated string for nmap
+        if resolved_targets:
+            resolved_ips = [target.ip for target in resolved_targets]
+            nmap_targets = ",".join(resolved_ips)
+            logger.info(f"[+] Final target list: {len(resolved_ips)} hosts")
+        else:
+            logger.warning(
+                "[!] No targets remaining after exclusion processing")
+            return
+
+    except Exception as e:
+        logger.error(f"[!] Target resolution error: {e}")
+        logger.info("[*] Proceeding with raw targets (exclusions not applied)")
+        nmap_targets = args.targets
+
+    # ============================================================
+    # STAGE 1: Host Discovery (Optimized Approach)
+    # ============================================================
+    live_hosts = []
+
+    # Check if we have CIDR ranges that would benefit from host discovery
+    has_cidr = "/" in nmap_targets
+
+    if has_cidr:
+        logger.info(
+            "[*] CIDR range detected - performing host discovery first")
         try:
-            # Initialize Masscan handler
-            masscan = MasscanHandler(timeout_sec=300)
+            nmap = NmapHandler(timeout_sec=300)
 
-            # Run Masscan on targets
-            logger.info(f"[*] Running Masscan on targets: {args.targets}")
-            result = masscan.scan_targets(
-                targets=args.targets,
-                top_ports=1000,
-                rate=100000
-            )
+            logger.info(f"[*] Running host discovery on: {nmap_targets}")
+            discovery_result = nmap.host_discovery(targets=nmap_targets)
 
-            logger.info(f"[+] Masscan command executed: {result.command}")
-            logger.info(f"[+] Masscan exit code: {result.exit_code}")
-
-            if result.exit_code == 0 and result.stdout:
+            if discovery_result.exit_code == 0 and discovery_result.stdout:
                 # Track command output
                 command_outputs.append({
-                    'tool': 'Masscan',
-                    'command': result.command,
-                    'output': result.stdout
+                    'tool': 'Nmap Host Discovery',
+                    'command': discovery_result.command,
+                    'output': discovery_result.stdout
                 })
 
-                # Parse Masscan output
-                parser = MasscanParser(result.stdout)
-                masscan_hosts = parser.parse()
+                # Extract live hosts
+                live_hosts = extract_live_hosts(discovery_result.stdout)
                 logger.info(
-                    f"[+] Masscan discovered {len(masscan_hosts)} hosts")
+                    f"[+] Host discovery found {len(live_hosts)} live hosts")
 
-                # Display Masscan results
-                display_masscan_results(masscan_hosts)
-
-                # Extract IPs for Nmap scan (narrow scope)
-                discovered_ips = []
-                for host_info in masscan_hosts:
-                    ip = host_info.get('ip') or host_info.get('host')
-                    if ip:
-                        discovered_ips.append(ip)
-
-                if discovered_ips:
-                    nmap_targets = ",".join(discovered_ips)
+                if live_hosts:
+                    nmap_targets = ",".join(live_hosts)
                     logger.info(
-                        f"[+] Will run Nmap on {len(discovered_ips)} discovered hosts")
+                        f"[+] Narrowed scan scope to {len(live_hosts)} live hosts")
+                    scan_mode = "host-discovery+nmap"
+                else:
+                    logger.warning(
+                        "[!] No live hosts found - proceeding with original targets")
 
-            elif result.stderr:
-                logger.warning(f"[!] Masscan stderr: {result.stderr}")
+            elif discovery_result.stderr:
+                logger.warning(
+                    f"[!] Host discovery stderr: {discovery_result.stderr}")
 
-        except RuntimeError as e:
-            logger.error(f"[!] Masscan error: {e}")
-            logger.info("[*] Proceeding with standard Nmap scan...")
-            scan_mode = "nmap-only"
-        except TimeoutError as e:
-            logger.error(f"[!] Masscan timeout: {e}")
-            logger.info("[*] Proceeding with standard Nmap scan...")
-            scan_mode = "nmap-only"
-    else:
-        logger.info(
-            "[*] Standard scan mode - running Nmap directly on all targets")
-        scan_mode = "nmap-only"
+        except Exception as e:
+            logger.error(f"[!] Host discovery error: {e}")
+            logger.info("[*] Proceeding with original target list")
 
     # ============================================================
     # STAGE 2: Deep Scan (Nmap)
