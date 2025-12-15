@@ -14,7 +14,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import Optional
 
-from utils.decorators import timed_operation, log_exceptions
+from utils.decorators import timing
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -132,8 +132,7 @@ class ADHandler:
                 exit_code=-1
             )
 
-    @timed_operation
-    @log_exceptions
+    @timing
     def ldap_rootdse(self, dc_ip: str) -> CommandResult:
         """
         Query LDAP RootDSE using Nmap NSE script.
@@ -157,8 +156,7 @@ class ADHandler:
         command = ["nmap", "-p", "389", "--script", "ldap-rootdse", dc_ip]
         return self._run_command(command, "nmap ldap-rootdse")
 
-    @timed_operation
-    @log_exceptions
+    @timing
     def ldap_basedse(self, dc_ip: str) -> CommandResult:
         """
         Query LDAP Base DSE using ldapsearch (authoritative source).
@@ -183,8 +181,7 @@ class ADHandler:
                    f"ldap://{dc_ip}", "-b", "", "-s", "base"]
         return self._run_command(command, "ldapsearch")
 
-    @timed_operation
-    @log_exceptions
+    @timing
     def smb_security_mode(self, dc_ip: str) -> CommandResult:
         """
         Enumerate SMB security mode and signing requirements.
@@ -212,8 +209,7 @@ class ADHandler:
         ]
         return self._run_command(command, "nmap smb-security-mode")
 
-    @timed_operation
-    @log_exceptions
+    @timing
     def netbios_role(self, dc_ip: str) -> CommandResult:
         """
         Query NetBIOS information and identify DC role.
@@ -237,8 +233,7 @@ class ADHandler:
         command = ["nmblookup", "-A", dc_ip]
         return self._run_command(command, "nmblookup")
 
-    @timed_operation
-    @log_exceptions
+    @timing
     def dns_srv_records(self, domain: str) -> CommandResult:
         """
         Query DNS SRV records for Active Directory services.
@@ -283,8 +278,7 @@ class ADHandler:
             exit_code=0 if ldap_result.exit_code == 0 or krb_result.exit_code == 0 else -1
         )
 
-    @timed_operation
-    @log_exceptions
+    @timing
     def kerberos_info(self, dc_ip: str, realm: Optional[str] = None) -> CommandResult:
         """
         Attempt to gather Kerberos information using Nmap NSE script.
