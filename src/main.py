@@ -772,7 +772,7 @@ def main():
     if args.output:
         output_file = args.output
     else:
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M")
         output_file = f"host_enumeration_report_{timestamp}_UTC.md"
 
     try:
