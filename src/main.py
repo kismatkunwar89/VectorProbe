@@ -15,9 +15,11 @@ from cli.argument_parser import parse_args
 from handlers.nmap_handler import NmapHandler
 from handlers.smb_handler import SMBHandler
 from handlers.netbios_handler import NetBIOSHandler
+from handlers.ad_handler import ADHandler
 from parsers.nmap_parser import NmapParser
 from parsers.smb_parser import SMBParser
 from parsers.netbios_parser import NetBIOSParser
+from parsers.ad_parser import ADParser
 from models.host_result import HostResult
 from models.enumeration_result import EnumerationResult
 from report.report_generator import generate_report
@@ -475,6 +477,279 @@ def main():
         logger.info("[*] No NetBIOS targets detected (port 139 not found)")
 
     # ============================================================
+    # STAGE 3.7: Active Directory Enumeration (DC-only)
+    # ============================================================
+    ad_results = {}
+    ad_hosts = []
+
+    # Identify Domain Controllers using multiple criteria:
+    # 1. LDAP ports (389, 636, 3268, 3269)
+    # 2. Kerberos port (88)
+    # 3. SMB with domain indicators (SYSVOL/NETLOGON shares, domain membership)
+    # 4. enum4linux-ng identifies as root/parent DC
+    # 5. Nmap service version contains "Active Directory LDAP"
+
+    logger.info("[*] Identifying Domain Controllers for AD enumeration...")
+
+    for host_data in nmap_hosts:
+        ip = host_data.get('ip') or host_data.get('host')
+        if not ip:
+            continue
+
+        is_dc = False
+        ports = host_data.get('services') or host_data.get('ports', [])
+
+        # Check for LDAP or Kerberos ports
+        for port in ports:
+            if isinstance(port, dict):
+                port_num = port.get('port')
+                service = port.get('service', '').lower()
+                product = port.get('product', '').lower()
+
+                # LDAP/Global Catalog ports
+                if port_num in [389, 636, 3268, 3269]:
+                    is_dc = True
+                    logger.info(
+                        f"[+] {ip} identified as DC (LDAP port {port_num})")
+                    break
+
+                # Kerberos port
+                if port_num == 88:
+                    is_dc = True
+                    logger.info(
+                        f"[+] {ip} identified as DC (Kerberos port 88)")
+                    break
+
+                # Active Directory LDAP in service version
+                if 'active directory' in service or 'active directory' in product:
+                    is_dc = True
+                    logger.info(f"[+] {ip} identified as DC (AD LDAP service)")
+                    break
+
+        # Check SMB results for domain indicators
+        if not is_dc and ip in smb_results:
+            smb_data = smb_results[ip]
+            # Check for SYSVOL/NETLOGON shares (DC indicators)
+            shares = smb_data.get('shares', [])
+            if any(share.lower() in ['sysvol', 'netlogon'] for share in shares):
+                is_dc = True
+                logger.info(
+                    f"[+] {ip} identified as DC (SYSVOL/NETLOGON shares)")
+
+            # Check if enum4linux-ng identified as DC
+            users = smb_data.get('users', [])
+            if 'root/parent DC' in str(smb_data).lower():
+                is_dc = True
+                logger.info(f"[+] {ip} identified as DC (enum4linux-ng)")
+
+        if is_dc and ip not in ad_hosts:
+            ad_hosts.append(ip)
+
+    if ad_hosts:
+        logger.info(
+            f"[*] Identified {len(ad_hosts)} Domain Controller(s), running Active Directory enumeration...")
+
+        try:
+            ad_handler = ADHandler(timeout=60)
+            ad_parser = ADParser()
+
+            for ip in ad_hosts:
+                logger.info(
+                    f"[*] Running Active Directory enumeration on {ip}...")
+
+                ad_data = {
+                    'ldap': {},
+                    'smb_security': {},
+                    'netbios': {},
+                    'dns_srv': {},
+                    'kerberos': {},
+                    'limitations': []
+                }
+
+                # Run LDAP Base DSE (authoritative)
+                try:
+                    basedse_result = ad_handler.ldap_basedse(ip)
+                    if basedse_result.exit_code == 0 and basedse_result.stdout:
+                        command_outputs.append({
+                            'tool': 'ldapsearch (Base DSE)',
+                            'command': basedse_result.command,
+                            'output': basedse_result.stdout,
+                            'target': ip
+                        })
+                        basedse_dict = ad_parser.parse_ldap_basedse(
+                            basedse_result.stdout)
+                    else:
+                        basedse_dict = ad_parser.parse_ldap_basedse("")
+                        if basedse_result.stderr:
+                            ad_data['limitations'].append(
+                                f"ldapsearch: {basedse_result.stderr}")
+                except Exception as e:
+                    logger.warning(f"[!] LDAP Base DSE failed for {ip}: {e}")
+                    basedse_dict = ad_parser.parse_ldap_basedse("")
+                    ad_data['limitations'].append(f"ldapsearch: {str(e)}")
+
+                # Run LDAP RootDSE (secondary)
+                try:
+                    rootdse_result = ad_handler.ldap_rootdse(ip)
+                    if rootdse_result.exit_code == 0 and rootdse_result.stdout:
+                        command_outputs.append({
+                            'tool': 'nmap ldap-rootdse',
+                            'command': rootdse_result.command,
+                            'output': rootdse_result.stdout,
+                            'target': ip
+                        })
+                        rootdse_dict = ad_parser.parse_ldap_rootdse(
+                            rootdse_result.stdout)
+                    else:
+                        rootdse_dict = ad_parser.parse_ldap_rootdse("")
+                        if rootdse_result.stderr:
+                            ad_data['limitations'].append(
+                                f"nmap ldap-rootdse: {rootdse_result.stderr}")
+                except Exception as e:
+                    logger.warning(f"[!] LDAP RootDSE failed for {ip}: {e}")
+                    rootdse_dict = ad_parser.parse_ldap_rootdse("")
+                    ad_data['limitations'].append(
+                        f"nmap ldap-rootdse: {str(e)}")
+
+                # Merge LDAP data with Base DSE precedence
+                ad_data['ldap'] = ad_parser.merge_ldap_data(
+                    basedse_dict, rootdse_dict)
+
+                # Run SMB security mode enumeration
+                try:
+                    smb_sec_result = ad_handler.smb_security_mode(ip)
+                    if smb_sec_result.exit_code == 0 and smb_sec_result.stdout:
+                        command_outputs.append({
+                            'tool': 'nmap smb-security-mode',
+                            'command': smb_sec_result.command,
+                            'output': smb_sec_result.stdout,
+                            'target': ip
+                        })
+                        ad_data['smb_security'] = ad_parser.parse_smb_security(
+                            smb_sec_result.stdout)
+                    else:
+                        ad_data['smb_security'] = ad_parser.parse_smb_security(
+                            "")
+                        if smb_sec_result.stderr:
+                            ad_data['limitations'].append(
+                                f"smb-security-mode: {smb_sec_result.stderr}")
+                except Exception as e:
+                    logger.warning(
+                        f"[!] SMB security mode failed for {ip}: {e}")
+                    ad_data['smb_security'] = ad_parser.parse_smb_security("")
+                    ad_data['limitations'].append(
+                        f"smb-security-mode: {str(e)}")
+
+                # Run NetBIOS role identification
+                try:
+                    netbios_result = ad_handler.netbios_role(ip)
+                    if netbios_result.exit_code == 0 and netbios_result.stdout:
+                        command_outputs.append({
+                            'tool': 'nmblookup',
+                            'command': netbios_result.command,
+                            'output': netbios_result.stdout,
+                            'target': ip
+                        })
+                        ad_data['netbios'] = ad_parser.parse_netbios_role(
+                            netbios_result.stdout)
+                    else:
+                        ad_data['netbios'] = ad_parser.parse_netbios_role("")
+                        if netbios_result.stderr:
+                            ad_data['limitations'].append(
+                                f"nmblookup: {netbios_result.stderr}")
+                except Exception as e:
+                    logger.warning(f"[!] NetBIOS role failed for {ip}: {e}")
+                    ad_data['netbios'] = ad_parser.parse_netbios_role("")
+                    ad_data['limitations'].append(f"nmblookup: {str(e)}")
+
+                # Extract domain from LDAP data for DNS SRV queries
+                domain = None
+                if ad_data['ldap'].get('defaultNamingContext'):
+                    # Extract domain from DN: DC=fnn,DC=local -> fnn.local
+                    dn = ad_data['ldap']['defaultNamingContext']
+                    dc_parts = [
+                        part.split('=')[1] for part in dn.split(',') if part.startswith('DC=')]
+                    if dc_parts:
+                        domain = '.'.join(dc_parts)
+
+                # Run DNS SRV record queries if domain identified
+                if domain:
+                    try:
+                        dns_result = ad_handler.dns_srv_records(domain)
+                        if dns_result.exit_code == 0 or dns_result.stdout:
+                            command_outputs.append({
+                                'tool': 'dig SRV',
+                                'command': dns_result.command,
+                                'output': dns_result.stdout,
+                                'target': domain
+                            })
+                            ad_data['dns_srv'] = ad_parser.parse_dns_srv(
+                                dns_result.stdout)
+                        else:
+                            ad_data['dns_srv'] = ad_parser.parse_dns_srv("")
+                            if dns_result.stderr:
+                                ad_data['limitations'].append(
+                                    f"dig: {dns_result.stderr}")
+                    except Exception as e:
+                        logger.warning(f"[!] DNS SRV failed for {domain}: {e}")
+                        ad_data['dns_srv'] = ad_parser.parse_dns_srv("")
+                        ad_data['limitations'].append(f"dig: {str(e)}")
+
+                # Attempt Kerberos enumeration if port 88 detected
+                has_kerberos = False
+                for host_data in nmap_hosts:
+                    if (host_data.get('ip') == ip or host_data.get('host') == ip):
+                        ports = host_data.get('services') or host_data.get(
+                            'ports', [])
+                        for port in ports:
+                            if isinstance(port, dict) and port.get('port') == 88:
+                                has_kerberos = True
+                                break
+                        break
+
+                if has_kerberos:
+                    # Extract realm from LDAP data if available
+                    realm = None
+                    if domain:
+                        realm = domain.upper()
+
+                    try:
+                        krb_result = ad_handler.kerberos_info(ip, realm)
+                        if krb_result.exit_code == 0 and krb_result.stdout:
+                            command_outputs.append({
+                                'tool': 'nmap krb5-enum-users',
+                                'command': krb_result.command,
+                                'output': krb_result.stdout,
+                                'target': ip
+                            })
+                            ad_data['kerberos'] = ad_parser.parse_kerberos_info(
+                                krb_result.stdout)
+                        else:
+                            ad_data['kerberos'] = ad_parser.parse_kerberos_info(
+                                krb_result.stderr or "")
+                            if krb_result.stderr and 'not available' in krb_result.stderr.lower():
+                                ad_data['limitations'].append(
+                                    "Kerberos NSE script not available")
+                    except Exception as e:
+                        logger.warning(
+                            f"[!] Kerberos info failed for {ip}: {e}")
+                        ad_data['kerberos'] = ad_parser.parse_kerberos_info("")
+                        ad_data['limitations'].append(f"kerberos: {str(e)}")
+
+                # Store results
+                ad_results[ip] = ad_data
+                hostname = ad_data['ldap'].get(
+                    'dnsHostName') or ad_data['netbios'].get('computer_name') or ip
+                logger.info(
+                    f"[+] Completed AD enumeration for {ip} ({hostname})")
+
+        except Exception as e:
+            logger.error(f"[!] AD enumeration failed: {e}")
+    else:
+        logger.info(
+            "[*] No Domain Controllers detected - skipping AD enumeration")
+
+    # ============================================================
     # STAGE 4: Generate Report
     # ============================================================
     logger.info("[*] Generating report...")
@@ -489,7 +764,7 @@ def main():
     try:
         # Generate and save report
         generate_report(enumeration_result.hosts, output_file,
-                        smb_results, command_outputs, netbios_results)
+                        smb_results, command_outputs, netbios_results, ad_results)
         logger.info(f"[+] Report saved to: {output_file}")
 
         # Display success message

@@ -1,0 +1,42 @@
+# LDAP DC SRV Query:
+; <<>> DiG 9.20.9-1-Debian <<>> SRV _ldap._tcp.dc._msdcs.example.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12345
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;_ldap._tcp.dc._msdcs.example.com.        IN      SRV
+
+;; ANSWER SECTION:
+_ldap._tcp.dc._msdcs.example.com. 600 IN SRV 0 100 389 dc1.example.com.
+_ldap._tcp.dc._msdcs.example.com. 600 IN SRV 0 100 389 dc2.example.com.
+
+;; Query time: 5 msec
+;; SERVER: 8.8.8.8#53(8.8.8.8) (UDP)
+;; WHEN: Sun Dec 14 19:00:38 EST 2025
+;; MSG SIZE  rcvd: 210
+
+
+# Kerberos SRV Query:
+; <<>> DiG 9.20.9-1-Debian <<>> SRV _kerberos._tcp.example.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12346
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;_kerberos._tcp.example.com.      IN      SRV
+
+;; ANSWER SECTION:
+_kerberos._tcp.example.com. 600 IN SRV 0 100 88 dc1.example.com.
+_kerberos._tcp.example.com. 600 IN SRV 0 100 88 dc2.example.com.
+
+;; Query time: 5 msec
+;; SERVER: 8.8.8.8#53(8.8.8.8) (UDP)
+;; WHEN: Sun Dec 14 19:00:38 EST 2025
+;; MSG SIZE  rcvd: 198
