@@ -1,7 +1,7 @@
-─$ cat report_dc.md    
+cat report_dc.md
 # Network Enumeration Report
 
-**Generated on:** 2025-12-14 21:14:29 UTC
+**Generated on:** 2025-12-14 22:02:52 UTC
 
 ## Summary
 
@@ -16,7 +16,7 @@
 
 | IP | Hostname | OS | Services | Status |
 |-------|----------|----|---------|---------|
-| 10.248.1.2 | None | Microsoft Windows Server 2016 or Server 2019 | domain (53/tcp), kerberos-sec (88/tcp), msrpc (135/tcp)... (+10) | 🟢 Online |
+| 10.248.1.2 | FNN-DC01 | Microsoft Windows Server 2016 or Server 2019 | domain (53/tcp), kerberos-sec (88/tcp), msrpc (135/tcp)... (+10) | 🟢 Online |
 
 ## Discovered Hosts
 
@@ -27,8 +27,8 @@
 | Property | Value |
 |----------|-------|
 | IP Address | 10.248.1.2 |
-| Hostname | None |
-| Domain | None |
+| Hostname | FNN-DC01 |
+| Domain | fnn.local |
 | OS Type | Microsoft Windows Server 2016 or Server 2019 |
 
 #### Active Services
@@ -36,26 +36,22 @@
 | Port | Protocol | Service | Fingerprint | Exploits |
 |------|----------|---------|-------------|----------|
 | 53 | tcp | domain | Simple DNS Plus | 1 found |
-| 88 | tcp | kerberos-sec | Microsoft Windows Kerberos (server time: 2025-12-14 21:14:13Z) | None |
+| 88 | tcp | kerberos-sec | Microsoft Windows Kerberos (server time: 2025 | None |
 | 135 | tcp | msrpc | Microsoft Windows RPC | None |
 | 139 | tcp | netbios-ssn | Microsoft Windows netbios-ssn | None |
 | 389 | tcp | ldap | Microsoft Windows Active Directory LDAP (Domain: fnn.local, Site: Default-First-Site-Name) | 1 found |
-| 445 | tcp | microsoft-ds | Windows Server 2016 Datacenter 14393 microsoft-ds (workgroup: FNN) | None |
-| 464 | tcp | kpasswd5? | Unknown | None |
+| 445 | tcp | microsoft-ds | Windows Server 2016 | None |
+| 464 | tcp | kpasswd5? | kpasswd5? | None |
 | 593 | tcp | ncacn_http | Microsoft Windows RPC over HTTP 1.0 | None |
-| 636 | tcp | tcpwrapped | Unknown | None |
+| 636 | tcp | tcpwrapped | tcpwrapped | None |
 | 3268 | tcp | ldap | Microsoft Windows Active Directory LDAP (Domain: fnn.local, Site: Default-First-Site-Name) | 1 found |
-| 3269 | tcp | tcpwrapped | Unknown | None |
+| 3269 | tcp | tcpwrapped | tcpwrapped | None |
 | 3389 | tcp | ms-wbt-server | Microsoft Terminal Services | None |
-| 5985 | tcp | http | Microsoft HTTPAPI httpd  (SSDP/UPnP) 2.0 | None |
+| 5985 | tcp | http | Microsoft HTTPAPI httpd 2.0 | None |
 
 **Exploits for domain (1)**
 
 - Simple DNS Plus 5.0/4.1 - Remote Denial of Service [EDB-6059] – /usr/share/exploitdb/exploits/windows/dos/6059.pl
-
-**Exploits for ldap (1)**
-
-- Microsoft Windows Server 2000 - Active Directory Remote Stack Overflow [EDB-22782] – /usr/share/exploitdb/exploits/windows/remote/22782.py
 
 **Exploits for ldap (1)**
 
@@ -67,7 +63,12 @@
 
 **OS:** Windows Server 2016 Datacenter 14393
 
-**Null Sessions:** ALLOWED ⚠
+**Null Sessions:** Disabled
+
+**Share Enumeration (anonymous):** `smb-enum-shares`
+- ADMIN$, C$, NETLOGON, and SHARED require authentication (NT_STATUS_ACCESS_DENIED)
+- IPC$ allows anonymous read access only
+- No additional world-readable shares discovered
 
 #### NetBIOS Enumeration
 
@@ -84,13 +85,13 @@ All commands executed during the enumeration process:
 **Output:**
 
 ```
-# Nmap 7.95 scan initiated Sun Dec 14 16:14:06 2025 as: /usr/lib/nmap/nmap --privileged -sS -sV -sC -O -Pn -oN - 10.248.1.2
+# Nmap 7.95 scan initiated Sun Dec 14 17:02:29 2025 as: /usr/lib/nmap/nmap --privileged -sS -sV -sC -O -Pn -oN - 10.248.1.2
 Nmap scan report for 10.248.1.2
-Host is up (0.00023s latency).
+Host is up (0.00025s latency).
 Not shown: 987 closed tcp ports (reset)
 PORT     STATE SERVICE       VERSION
 53/tcp   open  domain        Simple DNS Plus
-88/tcp   open  kerberos-sec  Microsoft Windows Kerberos (server time: 2025-12-14 21:14:13Z)
+88/tcp   open  kerberos-sec  Microsoft Windows Kerberos (server time: 2025-12-14 22:02:36Z)
 135/tcp  open  msrpc         Microsoft Windows RPC
 139/tcp  open  netbios-ssn   Microsoft Windows netbios-ssn
 389/tcp  open  ldap          Microsoft Windows Active Directory LDAP (Domain: fnn.local, Site: Default-First-Site-Name)
@@ -101,7 +102,10 @@ PORT     STATE SERVICE       VERSION
 3268/tcp open  ldap          Microsoft Windows Active Directory LDAP (Domain: fnn.local, Site: Default-First-Site-Name)
 3269/tcp open  tcpwrapped
 3389/tcp open  ms-wbt-server Microsoft Terminal Services
-|_ssl-date: 2025-12-14T21:14:23+00:00; 0s from scanner time.
+| ssl-cert: Subject: commonName=FNN-DC01.fnn.local
+| Not valid before: 2025-10-27T03:02:19
+|_Not valid after:  2026-04-28T03:02:19
+|_ssl-date: 2025-12-14T22:02:46+00:00; 0s from scanner time.
 | rdp-ntlm-info: 
 |   Target_Name: FNN
 |   NetBIOS_Domain_Name: FNN
@@ -110,10 +114,7 @@ PORT     STATE SERVICE       VERSION
 |   DNS_Computer_Name: FNN-DC01.fnn.local
 |   DNS_Tree_Name: fnn.local
 |   Product_Version: 10.0.14393
-|_  System_Time: 2025-12-14T21:14:15+00:00
-| ssl-cert: Subject: commonName=FNN-DC01.fnn.local
-| Not valid before: 2025-10-27T03:02:19
-|_Not valid after:  2026-04-28T03:02:19
+|_  System_Time: 2025-12-14T22:02:38+00:00
 5985/tcp open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
 |_http-server-header: Microsoft-HTTPAPI/2.0
 |_http-title: Not Found
@@ -126,7 +127,11 @@ Network Distance: 1 hop
 Service Info: Host: FNN-DC01; OS: Windows; CPE: cpe:/o:microsoft:windows
 
 Host script results:
-|_nbstat: NetBIOS name: FNN-DC01, NetBIOS user: <unknown>, NetBIOS MAC: f0:db:30:76:ee:ea (Yottabyte)
+| smb-security-mode: 
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: required
 | smb-os-discovery: 
 |   OS: Windows Server 2016 Datacenter 14393 (Windows Server 2016 Datacenter 6.3)
 |   Computer name: FNN-DC01
@@ -134,22 +139,18 @@ Host script results:
 |   Domain name: fnn.local
 |   Forest name: fnn.local
 |   FQDN: FNN-DC01.fnn.local
-|_  System time: 2025-12-14T16:14:14-05:00
+|_  System time: 2025-12-14T17:02:38-05:00
+| smb2-time: 
+|   date: 2025-12-14T22:02:38
+|_  start_date: 2025-11-25T02:57:33
 | smb2-security-mode: 
 |   3:1:1: 
 |_    Message signing enabled and required
-|_clock-skew: mean: 59m59s, deviation: 2h14m09s, median: 0s
-| smb2-time: 
-|   date: 2025-12-14T21:14:15
-|_  start_date: 2025-11-25T02:57:33
-| smb-security-mode: 
-|   account_used: guest
-|   authentication_level: user
-|   challenge_response: supported
-|_  message_signing: required
+|_clock-skew: mean: 1h00m00s, deviation: 2h14m10s, median: 0s
+|_nbstat: NetBIOS name: FNN-DC01, NetBIOS user: <unknown>, NetBIOS MAC: f0:db:30:76:ee:ea (Yottabyte)
 
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-# Nmap done at Sun Dec 14 16:14:23 2025 -- 1 IP address (1 host up) scanned in 17.21 seconds
+# Nmap done at Sun Dec 14 17:02:46 2025 -- 1 IP address (1 host up) scanned in 17.13 seconds
 
 ```
 
@@ -167,7 +168,7 @@ ENUM4LINUX - next generation (v1.3.7)
  ==========================
 [*] Target ........... 10.248.1.2
 [*] Username ......... ''
-[*] Random Username .. 'rgbrvhal'
+[*] Random Username .. 'dwhdaghz'
 [*] Password ......... ''
 [*] Timeout .......... 5 second(s)
 
@@ -235,7 +236,7 @@ Derived domain: FNN
 [*] Check for anonymous access (null session)
 [-] Could not establish null session: STATUS_ACCESS_DENIED
 [*] Check for guest access
-[-] Could not establish session using 'rgbrvhal', password ''
+[-] Could not establish session using 'dwhdaghz', password ''
 [-] Sessions failed, neither null nor user sessions were possible
 
  =============================================
@@ -258,7 +259,7 @@ Server type string: null
 
 [!] Aborting remainder of tests since sessions failed, rerun with valid credentials
 
-Completed after 0.17 seconds
+Completed after 0.15 seconds
 
 ```
 
@@ -270,6 +271,45 @@ Completed after 0.17 seconds
 
 ```
 name_query failed to find name 10.248.1.2#1d
+
+```
+
+### 4. Nmap SMB Share Enumeration - Target: 10.248.1.2
+
+**Command:** `nmap --script smb-enum-shares -p 445 10.248.1.2`
+
+**Output:**
+
+```
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-14 17:40 EST
+Nmap scan report for 10.248.1.2
+Host is up (0.00042s latency).
+
+PORT    STATE SERVICE
+445/tcp open  microsoft-ds
+MAC Address: F0:DB:30:76:EE:EA (Yottabyte)
+
+Host script results:
+| smb-enum-shares: 
+|   note: ERROR: Enumerating shares failed, guessing at common ones (NT_STATUS_ACCESS_DENIED)
+|   account_used: <blank>
+|   \10.248.1.2\ADMIN$: 
+|     warning: Couldn't get details for share: NT_STATUS_ACCESS_DENIED
+|     Anonymous access: <none>
+|   \10.248.1.2\C$: 
+|     warning: Couldn't get details for share: NT_STATUS_ACCESS_DENIED
+|     Anonymous access: <none>
+|   \10.248.1.2\IPC$: 
+|     warning: Couldn't get details for share: NT_STATUS_ACCESS_DENIED
+|     Anonymous access: READ
+|   \10.248.1.2\NETLOGON: 
+|     warning: Couldn't get details for share: NT_STATUS_ACCESS_DENIED
+|     Anonymous access: <none>
+|   \10.248.1.2\SHARED: 
+|     warning: Couldn't get details for share: NT_STATUS_ACCESS_DENIED
+|_    Anonymous access: <none>
+
+Nmap done: 1 IP address (1 host up) scanned in 1.07 seconds
 
 ```
 

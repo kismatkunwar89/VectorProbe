@@ -17,12 +17,12 @@ VectorProbe is a comprehensive network enumeration and security assessment tool 
 ### Prerequisites
 
 **Required Tools:**
-- Python 3.8+
+- Python 3.12 (specifically)
 - nmap
-- searchsploit (exploitdb)
+- searchsploit (from the `exploitdb` package)
 
 **Optional Tools (for enhanced functionality):**
-- masscan (for --fast-scan mode)
+- masscan (for `--fast-scan` mode)
 - enum4linux-ng (for SMB enumeration)
 
 ### Install System Dependencies
@@ -31,7 +31,7 @@ VectorProbe is a comprehensive network enumeration and security assessment tool 
 ```bash
 # Required
 sudo apt-get update
-sudo apt-get install -y python3 python3-pip python3-venv nmap exploitdb
+sudo apt-get install -y python3.12 python3-pip python3-venv nmap exploitdb
 
 # Optional - for fast scanning
 sudo apt-get install -y masscan
@@ -52,7 +52,7 @@ sudo pacman -S masscan
 **macOS:**
 ```bash
 # Required
-brew install python3 nmap exploitdb
+brew install python@3.12 nmap exploitdb
 
 # Optional
 brew install masscan
@@ -66,13 +66,13 @@ brew install masscan
    cd ProjectFinalEthical
    ```
 
-2. Create a virtual environment:
+2. Create a virtual environment using Python 3.12:
    ```bash
-   python3 -m venv venv
+   python3.12 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install Python dependencies:
+3. Install all required Python dependencies from `requirements.txt`:
    ```bash
    pip install -r requirements.txt
    ```
