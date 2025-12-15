@@ -183,6 +183,9 @@ def _format_ad_enumeration_section(ad_data, smb_data, netbios_data):
     dc_fqdn = ldap.get('dnsHostName')
     if dc_fqdn:
         output += f"| DC FQDN | {dc_fqdn} |\n"
+        
+    if not dc_hostname and dc_fqdn:
+        dc_hostname = dc_fqdn.split('.')[0]
 
     site = ldap.get('site')
     if site:

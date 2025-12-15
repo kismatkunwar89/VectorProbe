@@ -457,16 +457,30 @@ def main():
                 output = netbios.enumerate_netbios()
 
                 if output and output.strip():
-                    # Track command output
-                    command_outputs.append({
-                        'tool': 'nmblookup',
-                        'command': f'nmblookup -M {ip}',
-                        'output': output,
-                        'target': ip
-                    })
+                    # Detect common master browser failure
+                    is_master_browser_failure = "name_query failed to find name" in output.lower()
+
+                    if is_master_browser_failure:
+                        if not nmblookup_failure_recorded:
+                            command_outputs.append({
+                                'tool': 'nmblookup',
+                                'command': f'nmblookup -M {ip}',
+                                'output': output,
+                                'target': ip
+                            })
+                            nmblookup_failure_recorded = True
+                    # else: skip repeated failures
+                    else:
+                        command_outputs.append({
+                            'tool': 'nmblookup',
+                            'command': f'nmblookup -M {ip}',
+                            'output': output,
+                            'target': ip
+                        })
 
                     parser = NetBIOSParser()
                     netbios_results[ip] = parser.parse(output)
+
                     logger.info(f"[+] NetBIOS enumeration successful for {ip}")
                 else:
                     logger.warning(
@@ -759,7 +773,7 @@ def main():
         output_file = args.output
     else:
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        output_file = f"vectorprobe_report_{timestamp}.md"
+        output_file = f"host_enumeration_report_{timestamp}_UTC.md"
 
     try:
         # Generate and save report

@@ -59,6 +59,17 @@ When providing DNS records, the tool will:
 - Display the currently configured DNS server.
 - Prompt for confirmation before proceeding. Default is "No" if no input is provided.
 
+### Active Directory Enumeration
+
+When a Windows host or Domain Controller is detected, the tool attempts to enumerate Active Directory and LDAP-related information if the required services and tools are available.
+
+This may include:
+- Domain and naming context information
+- LDAP RootDSE / BaseDSE attributes
+- Windows domain indicators
+
+Best results are obtained when scanning a Domain Controller with LDAP ports accessible.
+
 ## Report Generation
 
 The tool generates a report in Markdown format, which includes:

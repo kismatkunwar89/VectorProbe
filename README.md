@@ -11,6 +11,8 @@ VectorProbe is a comprehensive network enumeration and security assessment tool 
 - **Vulnerability Correlation**: Automatic searchsploit integration for exploit identification
 - **SMB Enumeration**: Automated Windows/Samba enumeration with enum4linux-ng
 - **Markdown Reports**: Clean, structured reporting in Markdown format
+- **Active Directory Enumeration**: LDAP and domain information enumeration against Windows Domain Controllers
+
 
 ## Installation
 
@@ -36,6 +38,9 @@ sudo apt-get install -y python3.12 python3-pip python3-venv nmap exploitdb
 # Optional - for fast scanning
 sudo apt-get install -y masscan
 
+# Optional - for Active Directory / LDAP enumeration
+sudo apt-get install -y ldap-utils dnsutils samba-common-bin
+
 # Optional - for SMB enumeration
 sudo apt-get install -y enum4linux-ng
 ```
@@ -45,6 +50,9 @@ sudo apt-get install -y enum4linux-ng
 # Required
 sudo pacman -S python python-pip nmap exploitdb
 
+# Optional - for Active Directory / LDAP enumeration
+sudo pacman -S openldap bind samba
+
 # Optional
 sudo pacman -S masscan
 ```
@@ -53,6 +61,9 @@ sudo pacman -S masscan
 ```bash
 # Required
 brew install python@3.12 nmap exploitdb
+
+# Optional - for Active Directory / LDAP enumeration
+brew install openldap bind samba
 
 # Optional
 brew install masscan
@@ -132,6 +143,13 @@ Disable prompts (useful for automation):
 ```bash
 python src/main.py -t example.com --no-prompt
 ```
+### Active Directory Enumeration Examples
+
+Scan a Windows Domain Controller to enumerate LDAP and domain information:
+```bash
+python src/main.py -t <DC_IP>
+python src/main.py -t <DC_IP> -o ad_enumeration_report.md
+
 
 ## Command-Line Options
 

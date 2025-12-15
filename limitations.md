@@ -32,4 +32,16 @@ This document outlines the limitations and edge cases encountered during the dev
 ## 8. Ethical Considerations
 - Users must ensure they have explicit permission to scan and enumerate networks and hosts to avoid legal repercussions.
 
+## 9. Active Directory / LDAP Limitations
+
+- **Tool availability:** Active Directory enumeration depends on required system utilities such as `ldapsearch`, DNS tools, and SMB helpers. Missing tools will result in reduced or skipped AD-related output.
+- **Unauthenticated LDAP access:** Many LDAP attributes are restricted without credentials. As a result, unauthenticated enumeration may return partial or limited domain information.
+- **Domain Controller targeting:** Best results are obtained when scanning a Domain Controller. Non-DC Windows hosts may not expose LDAP services and will not return full Active Directory context.
+- **Firewall and port restrictions:** If LDAP/LDAPS ports (389/636) or related services are blocked, AD discovery will be incomplete even if the host is part of a domain.
+- **`.local` domain behavior:** `.local` Active Directory domains rely heavily on proper DNS configuration. Inconsistent DNS resolution may lead to incomplete domain or naming context information.
+- **BaseDSE visibility:** RootDSE/BaseDSE attributes and naming contexts can vary based on server configuration and hardening. Some fields may be hidden or restricted.
+- **Partial enumeration expectations:** Active Directory environments may return inconsistent results depending on network segmentation, permissions, and server policy.
+- **Data precedence:** When multiple tools report overlapping LDAP/BaseDSE information, `ldapsearch` output should be treated as the primary data source, with other tools used only for secondary confirmation.
+
+
 This document will be updated as new limitations or edge cases are discovered during further testing and validation.
