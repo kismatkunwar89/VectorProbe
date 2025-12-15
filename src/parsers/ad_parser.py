@@ -13,7 +13,7 @@ Parses output from AD enumeration tools:
 import re
 from typing import Dict, List, Optional, Any
 
-from src.utils.logger import get_logger
+from utils.logger import get_logger
 
 logger = get_logger()
 
