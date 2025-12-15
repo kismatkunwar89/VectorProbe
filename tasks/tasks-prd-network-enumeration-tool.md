@@ -122,19 +122,30 @@
     > *__Cancelled:__ Not explicitly required by project.md (beyond the DNS Safety Feature, which is done)*
     - [c] 6.4.1 Create `dns_handler.py` and `dns_parser.py`.
     - [c] 6.4.2 **Write unit tests using fixtures.**
-  - [ ] 6.5 **Active Directory Enumeration (Unauthenticated)**
-    > *__To Do:__ Kismat*
-    - [ ] 6.5.1 Create `ad_handler.py` and `ad_parser.py` files.
-    - [ ] 6.5.2 In `main.py`, implement trigger logic to run the AD handler if LDAP/Kerberos ports are found or if SMB enumeration indicates domain membership.
-    - [ ] 6.5.3 Implement LDAP `rootDSE` enumeration (`nmap --script ldap-rootdse`) in the handler and parser.
-    - [ ] 6.5.4 Implement LDAP `baseDSE` enumeration (`ldapsearch`) in the handler and parser.
-    - [ ] 6.5.5 Implement SMB security posture enumeration (`nmap --script smb-enum-domains,smb-security-mode`) in the handler and parser.
-    - [ ] 6.5.6 Implement NetBIOS role enumeration (`nmblookup -A`) in the handler and parser.
-    - [ ] 6.5.7 Implement DNS SRV record enumeration (`dig SRV ...`) in the handler and parser.
-    - [ ] 6.5.8 Implement Kerberos info enumeration (`nmap --script krb5-info`) in the handler and parser.
-    - [ ] 6.5.9 Update `report_generator.py` to add the new `### Active Directory Enumeration (Unauthenticated)` section with all required subsections.
-    - [ ] 6.5.10 Write unit tests in `tests/test_ad_parser.py` using fixtures for all new tool outputs.
+  - [x] 6.5 **Active Directory Enumeration (Unauthenticated)**
+    > *__Covered by:__ Kismat*
+    - [x] 6.5.1 Create `ad_handler.py` and `ad_parser.py` files.
+      > *__Covered by:__ Kismat (ADHandler with 6 methods, ADParser with 7 parsing methods + LDAP merge)*
+    - [x] 6.5.2 In `main.py`, implement trigger logic to run the AD handler if LDAP/Kerberos ports are found or if SMB enumeration indicates domain membership.
+      > *__Covered by:__ Kismat (STAGE 3.7: Multi-criteria DC identification - LDAP/Kerberos ports, SYSVOL/NETLOGON shares, service detection)*
+    - [x] 6.5.3 Implement LDAP `rootDSE` enumeration (`nmap --script ldap-rootdse`) in the handler and parser.
+      > *__Covered by:__ Kismat (ldap_rootdse() method, parse_ldap_rootdse() for NSE output)*
+    - [x] 6.5.4 Implement LDAP `baseDSE` enumeration (`ldapsearch`) in the handler and parser.
+      > *__Covered by:__ Kismat (ldap_basedse() method, parse_ldap_basedse() with LDIF multi-line continuation, merge_ldap_data() with Base DSE precedence)*
+    - [x] 6.5.5 Implement SMB security posture enumeration (`nmap --script smb-enum-domains,smb-security-mode`) in the handler and parser.
+      > *__Covered by:__ Kismat (smb_security_mode() method, parse_smb_security() with relay attack interpretation)*
+    - [x] 6.5.6 Implement NetBIOS role enumeration (`nmblookup -A`) in the handler and parser.
+      > *__Covered by:__ Kismat (netbios_role() method, parse_netbios_role() with DC detection via <1c>/<1b> groups)*
+    - [x] 6.5.7 Implement DNS SRV record enumeration (`dig SRV ...`) in the handler and parser.
+      > *__Covered by:__ Kismat (dns_srv_records() method, parse_dns_srv() with .local domain interpretation)*
+    - [x] 6.5.8 Implement Kerberos info enumeration (`nmap --script krb5-info`) in the handler and parser.
+      > *__Covered by:__ Kismat (kerberos_info() method, parse_kerberos_info() with graceful script unavailability handling)*
+    - [x] 6.5.9 Update `report_generator.py` to add the new `### Active Directory Enumeration (Unauthenticated)` section with all required subsections.
+      > *__Covered by:__ Kismat (_format_ad_enumeration_section() with 6 subsections: AD Identity & Roles, Functional Levels, Naming Contexts, LDAP Capabilities, SMB Security, NetBIOS, DNS SRV, conditional rendering to avoid redundancy)*
+    - [x] 6.5.10 Write unit tests in `tests/test_ad_parser.py` using fixtures for all new tool outputs.
+      > *__Covered by:__ Kismat (43 tests - all passing, 8 fixture files from real FNN.LOCAL DC: ldap_rootdse, ldap_basedse, smb_security DC/workstation, netbios, dns_srv nxdomain/found, kerberos_unavailable)*
     - [ ] 6.5.11 Update `README.md` with new dependencies (`ldap-utils`, `dnsutils`) and `limitations.md` as per the plan.
+      > *__To Do:__ Documentation update needed*
 
 
 - [x] 7.0 **Stage 5: Report Generation**
