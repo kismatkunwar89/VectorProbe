@@ -29,90 +29,64 @@ VectorProbe performs comprehensive unauthenticated Active Directory enumeration 
 ### Prerequisites
 
 **Required Tools:**
-- **Python 3.12** (specifically version 3.12.x - this is enforced by the tool)
+- **Python 3.12+** (tested on 3.12.x; newer versions print a warning but are supported)
 - nmap
 - searchsploit (from the `exploitdb` package)
 
 **Optional Tools (for enhanced functionality):**
 - enum4linux-ng (for SMB enumeration)
 
-### Step 1: Install Python 3.12
+### Step 1: Install Python 3.12+
 
-**IMPORTANT:** This tool requires Python 3.12 specifically and will not run on other versions.
+VectorProbe enforces a minimum of Python **3.12**. Running on 3.13+ works, but you will see a warning because grading was performed on Python 3.12.x. Pick whichever path below matches your operating system.
 
-**Debian/Ubuntu/Kali:**
-
-**Option A: Install from deadsnakes PPA (if python3.12 not in default repos):**
+**Debian/Ubuntu/Kali (package available)**
 ```bash
-# Add deadsnakes PPA for newer Python versions
-sudo apt-get update
-sudo apt-get install -y software-properties-common
-sudo add-apt-repository -y ppa:deadsnakes/ppa
-sudo apt-get update
-
-# Install Python 3.12
-sudo apt-get install -y python3.12 python3.12-venv python3.12-dev
-
-# Verify installation
-python3.12 --version  # Should show Python 3.12.x
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev
+python3.12 --version  # confirm 3.12.x
 ```
 
-**Option B: If package is available directly:**
+**Debian/Ubuntu/Kali (no python3.12 package)**
 ```bash
-sudo apt-get update
-sudo apt-get install -y python3.12 python3.12-venv python3-pip
+# Build dependencies
+sudo apt update
+sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
+    libreadline-dev libsqlite3-dev libffi-dev libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev
 
-# Verify installation
-python3.12 --version
+# Download + build from source
+curl -O https://www.python.org/ftp/python/3.12.9/Python-3.12.9.tgz
+tar -xf Python-3.12.9.tgz
+cd Python-3.12.9
+./configure --enable-optimizations --prefix=$HOME/.local/python-3.12
+make -j"$(nproc)"
+make install
+
+# Use ~/.local/python-3.12/bin/python3.12 when creating the venv
+```
+_Alternative_: install pyenv and run `pyenv install 3.12.9` followed by `pyenv local 3.12.9`.
+
+**Arch Linux**
+```bash
+sudo pacman -S python  # Arch already ships Python 3.12.x
 ```
 
-**Option C: Use pyenv (alternative method):**
+**macOS**
 ```bash
-# Install pyenv
-curl https://pyenv.run | bash
-
-# Add to ~/.bashrc or ~/.zshrc
-echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-source ~/.bashrc
-
-# Install Python 3.12
-pyenv install 3.12.8
-pyenv global 3.12.8
-
-# Verify
-python --version  # Should show Python 3.12.8
-```
-
-**Arch Linux:**
-```bash
-# Python 3.12 may require pyenv or AUR
-yay -S python312  # Using AUR helper
-# OR build from source
-```
-
-**macOS:**
-```bash
-# Install Python 3.12 via Homebrew
 brew install python@3.12
+python3.12 --version
 ```
 
 ### Step 2: Install System Dependencies
 
 **Debian/Ubuntu/Kali:**
 ```bash
-# Required tools
-sudo apt-get install -y nmap exploitdb
-
-```bash
-# Required tools
-sudo apt-get install -y nmap exploitdb
-
-# Optional - for Active Directory / LDAP enumeration
-sudo apt-get install -y ldap-utils dnsutils samba-common-bin
-
-# Optional - for SMB enumeration
-sudo apt-get install -y enum4linux-ng
+sudo apt install -y nmap exploitdb
+# Optional - AD/LDAP helpers
+sudo apt install -y ldap-utils dnsutils samba-common-bin
+# Optional - SMB helper
+sudo apt install -y enum4linux-ng
 ```
 
 **Arch Linux:**

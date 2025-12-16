@@ -8,16 +8,22 @@ arguments, and kicks off the enumeration process.
 
 import sys
 
-# Enforce Python 3.12 requirement (project.md Section 2.1)
-if sys.version_info < (3, 12) or sys.version_info >= (3, 13):
-    print("ERROR: This script requires Python 3.12 specifically.")
+# Enforce minimum Python requirement per project.md Section 2.1
+if sys.version_info < (3, 12):
+    print("ERROR: This script requires at least Python 3.12.")
     print(
         f"Current version: Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
-    print("\nPlease install Python 3.12:")
+    print("\nPlease install Python 3.12 or newer:")
     print("  - Debian/Ubuntu: sudo apt install python3.12")
     print("  - Arch: Use pyenv or build from source")
     print("  - macOS: brew install python@3.12")
     sys.exit(1)
+elif sys.version_info >= (3, 13):
+    # Warn so users know the tested version but still allow execution
+    print(
+        f"[!] Warning: Tested on Python 3.12, running on {sys.version.split()[0]} may be unsupported.",
+        file=sys.stderr
+    )
 
 import logging
 from datetime import datetime
