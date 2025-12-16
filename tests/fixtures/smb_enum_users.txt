@@ -1,0 +1,14 @@
+Host script results:
+| smb-enum-users:
+|   WORKGROUP\Administrator (RID: 500)
+|     Description: Built-in account for administering the computer/domain
+|     Flags:       Password does not expire, Normal user account
+|   WORKGROUP\Guest (RID: 501)
+|     Description: Built-in account for guest access to the computer/domain
+|     Flags:       Password not required, Password does not expire, Account disabled, Normal user account
+|   WORKGROUP\john (RID: 1001)
+|     Description: John Smith - IT Administrator
+|     Flags:       Normal user account
+|   WORKGROUP\alice (RID: 1002)
+|     Description: Alice Johnson - Developer
+|_    Flags:       Password does not expire, Normal user account

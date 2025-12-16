@@ -1,0 +1,10 @@
+Host script results:
+| nbstat: NetBIOS name: WIN-SRV01, NetBIOS user: <unknown>, NetBIOS MAC: 00:0c:29:3a:2b:1c (VMware)
+| Names:
+|   WIN-SRV01<00>        Flags: <unique><active>
+|   WIN-SRV01<20>        Flags: <unique><active>
+|   WORKGROUP<00>        Flags: <group><active>
+|   WORKGROUP<1e>        Flags: <group><active>
+|   WORKGROUP<1d>        Flags: <unique><active>
+|_  \x01\x02__MSBROWSE__\x02<01>  Flags: <group><active>
+| MAC Address: 00:0c:29:3a:2b:1c (VMware)

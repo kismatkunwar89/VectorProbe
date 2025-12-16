@@ -62,7 +62,9 @@ class HostResult:
         # Each entry: {'command': 'nmap -sV ...', 'output': '...'}
         self.command_outputs = []
 
-    def add_service(self, service_name, port, protocol):
+    def add_service(self, service_name, port, protocol,
+                    state=None, product=None, version=None,
+                    exploits=None):
         """
         Add a discovered service to this host.
 
@@ -80,6 +82,15 @@ class HostResult:
             'port': port,
             'protocol': protocol
         }
+
+        if state:
+            service_info['state'] = state
+        if product:
+            service_info['product'] = product
+        if version:
+            service_info['version'] = version
+
+        service_info['exploits'] = exploits or []
         self.services.append(service_info)
 
     def add_unverified_info(self, info):

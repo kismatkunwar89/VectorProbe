@@ -36,12 +36,19 @@ python src/main.py [options] <targets>
 ### Command-Line Options
 
 - **-h, --help**: Display help information and usage examples.
-- **-o <path>**: Override the default output file name and location.
-- **<targets>**: Specify the target hosts. This can include:
+- **-t, --targets**: Specify the target hosts. This can include:
   - Individual IPv4 addresses (e.g., 192.168.1.1)
   - DNS records (e.g., server.example.com)
   - Subnets in CIDR notation (e.g., 192.168.1.0/24)
   - Comma-separated lists of any combination of the above
+- **-x, --exclude**: Exclude specific hosts from the scan (same format as targets)
+- **-o, --output <path>**: Override the default output file name and location.
+- **--scan-type {default,quick,full,udp}**: Choose scan type:
+  - **default**: TCP SYN scan on top 1000 ports with service/OS detection (recommended)
+  - **quick**: Fast scan on top 100 TCP ports (rapid discovery)
+  - **full**: Comprehensive scan of all 65535 TCP ports (time-intensive)
+  - **udp**: UDP scan on top 20 common UDP ports (DNS, SNMP, DHCP, etc.)
+- **--no-prompt**: Disable interactive prompts (useful for automation)
 
 ### Excluding Hosts
 
@@ -58,6 +65,17 @@ Where `<excluded_targets>` can be specified in the same formats as the targets.
 When providing DNS records, the tool will:
 - Display the currently configured DNS server.
 - Prompt for confirmation before proceeding. Default is "No" if no input is provided.
+
+### Active Directory Enumeration
+
+When a Windows host or Domain Controller is detected, the tool attempts to enumerate Active Directory and LDAP-related information if the required services and tools are available.
+
+This may include:
+- Domain and naming context information
+- LDAP RootDSE / BaseDSE attributes
+- Windows domain indicators
+
+Best results are obtained when scanning a Domain Controller with LDAP ports accessible.
 
 ## Report Generation
 

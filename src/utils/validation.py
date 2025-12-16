@@ -1,7 +1,7 @@
 import re
 import ipaddress
 
-def validate_ip(ip):
+def is_valid_ip(ip):
     """Validate an IPv4 address."""
     try:
         ipaddress.ip_address(ip)
@@ -27,6 +27,6 @@ def validate_excluded_hosts(excluded_hosts):
     hosts = excluded_hosts.split(',')
     for host in hosts:
         host = host.strip()
-        if not (validate_ip(host) or validate_dns_record(host) or validate_cidr(host)):
+        if not (is_valid_ip(host) or validate_dns_record(host) or validate_cidr(host)):
             return False
     return True

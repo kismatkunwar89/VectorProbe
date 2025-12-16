@@ -1,0 +1,73 @@
+REMAINING TASKS FROM PROJECT.MD:
+1. Documentation Updates (PRIORITY - Quick Wins)
+README.md - Needs updates for:
+
+✅ Already has: Installation, basic usage, dependencies
+❌ MISSING: AD enumeration dependencies (ldap-utils, dnsutils, samba-common-bin)
+❌ MISSING: Updated usage examples showing AD enumeration
+❌ MISSING: More comprehensive feature list
+limitations.md - Needs enhancement:
+
+✅ Has generic limitations
+❌ MISSING: AD enumeration specific limitations (from task 6.5.11):
+Tool availability constraints
+.local DNS domain interpretation
+LDAP Base DSE visibility requirements
+Unauthenticated scope boundaries
+DC-only targeting explanation
+Partial enumeration scenarios
+LDAP data precedence rules
+contributions.md - Needs update:
+
+✅ Has Kismat and Gamvirta sections
+❌ MISSING: Recent AD enumeration work attribution
+❌ MISSING: Recent bug fixes and improvements
+user_guide.md - Needs verification:
+
+✅ Has basic usage
+❌ Check if complete with all options and examples
+2. Testing & Validation (Part 2: 20% of grade)
+❌ Test against minimum 5 different hosts/networks
+
+Must include both Windows and Linux systems
+Current testing appears limited to fixtures
+❌ Create sample output reports in samples/ directory
+
+samples folder currently empty
+Need real-world enumeration reports demonstrating:
+Windows host with AD enumeration
+Linux host enumeration
+Mixed network scan
+Fast-scan mode example
+Normal mode example
+3. Grading Rubric Checklist
+Part 1: Tool Development (40 points) - ✅ COMPLETE
+
+All features implemented and working
+Part 2: Testing (20 points) - ❌ INCOMPLETE
+
+❌ Test coverage against 5+ hosts (8 points)
+❌ Sample reports in samples/ (6 points)
+❌ Updated limitations.md (6 points)
+Part 3: Documentation (20 points) - 🔄 PARTIAL
+
+✅ --help option (5 points)
+🔄 README.md needs AD dependencies (5 points)
+🔄 User Guide needs verification (4 points)
+✅ requirements.txt complete (2 points)
+✅ Code documentation good (2 points)
+🔄 contributions.md needs update (2 points)
+Part 5: Presentation (20 points) - ❌ PENDING
+
+Not yet scheduled/delivered
+IMMEDIATE ACTION ITEMS:
+Update README.md - Add AD dependencies section
+Update limitations.md - Add 7 AD enumeration limitations
+Update contributions.md - Add AD implementation credit to Kismat
+Run 5+ real scans - Against test network (Windows + Linux)
+Generate sample reports - Save to samples/ directory
+Verify user_guide.md - Ensure completeness
+Estimated Time:
+
+Documentation: 30-45 minutes
+Real testing + samples: 1-2 hours (depends on network access

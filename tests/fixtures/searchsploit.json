@@ -1,0 +1,15 @@
+{
+  "RESULTS_EXPLOIT": [
+    {
+      "Title": "OpenSSH 7.2p2 - Username Enumeration",
+      "EDB-ID": "40136",
+      "Date": "2016-08-05",
+      "Author": "ExploitDB",
+      "Type": "remote",
+      "Platform": "linux",
+      "Path": "exploits/linux/remote/40136.py",
+      "URL": "https://www.exploit-db.com/exploits/40136"
+    }
+  ],
+  "RESULTS_SHELLCODE": []
+}

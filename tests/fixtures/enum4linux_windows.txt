@@ -1,0 +1,108 @@
+Starting enum4linux-ng v1.0.1 (https://github.com/cddmp/enum4linux-ng)
+
+[*] Target: 192.168.1.100
+
+Host: 192.168.1.100 is up and running
+
+[+] =====================================================================
+
+[+] Enum4linux v1.0.1 ( http://labs.portcullis.co.uk/application/enum4linux/ )
+
+[+] =====================================================================
+
+[*] OS Detection:
+
+[E] OS: Windows Server 2019 Standard
+
+[*] Domain Name:
+
+[E] Domain Name: WINSERVER
+[E] Workgroup: WINSERVER
+
+[*] NetBIOS info:
+
+[E] NetBIOS name: WINSERVER
+[E] Workgroup: WINSERVER
+[E] Server: Windows Server 2019 Standard
+
+[*] Users:
+
+[E] RID: 500
+[-] User 'Administrator' (rid 500)
+
+[E] RID: 501
+[-] User 'Guest' (rid 501)
+
+[E] RID: 1000
+[-] User 'admin' (rid 1000)
+
+[E] RID: 1001
+[-] User 'dbuser' (rid 1001)
+
+[E] RID: 1002
+[-] User 'webadmin' (rid 1002)
+
+[*] Groups:
+
+[E] RID: 544
+[-] Group 'Administrators' (rid 544)
+
+[E] RID: 545
+[-] Group 'Users' (rid 545)
+
+[E] RID: 546
+[-] Group 'Guests' (rid 546)
+
+[E] RID: 1100
+[-] Group 'Domain Admins' (rid 1100)
+
+[*] Shares:
+
+[E] Disk: \\192.168.1.100\ADMIN$ (ADMIN$) Disk 'Remote Admin'
+[E] Disk: \\192.168.1.100\C$ (C$) Disk 'Default share'
+[E] Disk: \\192.168.1.100\IPC$ (IPC$) Disk 'Remote IPC'
+[E] Disk: \\192.168.1.100\Documents (Documents) Disk 'User Documents'
+[E] Disk: \\192.168.1.100\Public (Public) Disk 'Public Folder'
+
+[*] Null Session Enumeration:
+
+[E] Access over \\x00 session successful
+
+[*] RPC Service Discovery:
+
+[+] Discovered RPC Endpoints:
+[E] SAMR Service on 192.168.1.100:445 - Allows RPC based user and group enumeration
+[E] LSARPC Service on 192.168.1.100:445 - Allows LSA enumeration and policy information
+
+[*] Information gathered:
+
+[+] Servers active on this domain:
+[E] WINSERVER: Computer Server
+
+[+] Users obtained via RPC:
+[E] Administrator
+[E] Guest
+[E] admin
+[E] dbuser
+[E] webadmin
+
+[+] Groups obtained via RPC:
+[E] Administrators
+[E] Users
+[E] Guests
+[E] Domain Admins
+
+[+] Shares obtained via RPC:
+[E] ADMIN$: Remote Admin
+[E] C$: Default share
+[E] IPC$: Remote IPC
+[E] Documents: User Documents
+[E] Public: Public Folder
+
+[*] Checking for null session vulnerability - done
+
+[*] Enumerating domain trusts - done
+
+[*] Enumerating policy information - done
+
+[+] Enumeration completed.

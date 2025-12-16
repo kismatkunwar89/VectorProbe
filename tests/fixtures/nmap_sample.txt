@@ -1,0 +1,7 @@
+Host: 192.168.1.100
+Ports: 22/open/tcp, 80/open/tcp, 443/open/tcp
+OS details: Linux 5.4
+
+Host: 192.168.1.101
+Ports: 3389/open/tcp, 445/open/tcp
+OS details: Windows Server 2019

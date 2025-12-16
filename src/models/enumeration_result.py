@@ -3,6 +3,7 @@ class EnumerationResult:
         self.hosts = {}
         self.services = {}
         self.vulnerabilities = []
+        self.command_outputs = []  # Track all executed commands and outputs
 
     def add_host(self, ip_address, host_data):
         self.hosts[ip_address] = host_data

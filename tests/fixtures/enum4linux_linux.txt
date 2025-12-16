@@ -1,0 +1,92 @@
+Starting enum4linux-ng v1.0.1 (https://github.com/cddmp/enum4linux-ng)
+
+[*] Target: 192.168.1.101
+
+Host: 192.168.1.101 is up and running
+
+[+] =====================================================================
+
+[+] Enum4linux v1.0.1 ( http://labs.portcullis.co.uk/application/enum4linux/ )
+
+[+] =====================================================================
+
+[*] OS Detection:
+
+[E] OS: Linux 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020
+
+[*] Domain Name:
+
+[E] Domain Name: SAMBA
+[E] Workgroup: SAMBA
+
+[*] NetBIOS info:
+
+[E] NetBIOS name: SAMBA-SERVER
+[E] Workgroup: SAMBA
+[E] Server: Samba 4.11.6-Ubuntu
+
+[*] Users:
+
+[E] RID: 1000
+[-] User 'samba' (rid 1000)
+
+[E] RID: 1001
+[-] User 'scanner' (rid 1001)
+
+[E] RID: 1002
+[-] User 'backup' (rid 1002)
+
+[*] Groups:
+
+[E] RID: 513
+[-] Group 'None' (rid 513)
+
+[E] RID: 1000
+[-] Group 'samba' (rid 1000)
+
+[E] RID: 1001
+[-] Group 'scanner' (rid 1001)
+
+[*] Shares:
+
+[E] Disk: \\192.168.1.101\IPC$ (IPC$) Disk 'IPC Service (samba-server)'
+[E] Disk: \\192.168.1.101\backup (backup) Disk 'Backup Share'
+[E] Disk: \\192.168.1.101\data (data) Disk 'Shared Data'
+
+[*] Null Session Enumeration:
+
+[E] Access over \\x00 session successful
+
+[*] RPC Service Discovery:
+
+[+] Discovered RPC Endpoints:
+[E] SAMR Service on 192.168.1.101:445 - Allows RPC based user and group enumeration
+[E] NETLOGON Service on 192.168.1.101:445 - Samba NetLogon service
+
+[*] Information gathered:
+
+[+] Servers active on this domain:
+[E] SAMBA-SERVER: Samba Server
+
+[+] Users obtained via RPC:
+[E] samba
+[E] scanner
+[E] backup
+
+[+] Groups obtained via RPC:
+[E] None
+[E] samba
+[E] scanner
+
+[+] Shares obtained via RPC:
+[E] IPC$: IPC Service (samba-server)
+[E] backup: Backup Share
+[E] data: Shared Data
+
+[*] Checking for null session vulnerability - done
+
+[*] Enumerating domain trusts - done
+
+[*] Enumerating policy information - done
+
+[+] Enumeration completed.

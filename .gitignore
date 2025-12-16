@@ -24,4 +24,6 @@ venv/
 *.mdc
 notes/
 docs/
+report.md
+long.md
 

@@ -1,0 +1,8 @@
+Looking up status of 10.248.1.2
+        FNN             <00> - <GROUP> B <ACTIVE> 
+        FNN-DC01        <00> -         B <ACTIVE> 
+        FNN             <1c> - <GROUP> B <ACTIVE> 
+        FNN-DC01        <20> -         B <ACTIVE> 
+        FNN             <1b> -         B <ACTIVE> 
+
+        MAC Address = F0-DB-30-76-EE-EA

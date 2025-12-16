@@ -1,6 +1,6 @@
-#nmap
-#requests
-#pyyaml
+# nmap
+# requests
+# pyyaml
 
 """
 nmap_handler.py
@@ -17,26 +17,12 @@ NOTE:
 
 from __future__ import annotations
 
-import shutil
-import subprocess
-from dataclasses import dataclass
 from typing import List, Optional
 
-
-@dataclass
-class CommandResult:
-    """
-    Holds results of a command execution.
-
-    command   : exact command string that was run
-    stdout    : normal output from command
-    stderr    : error output from command
-    exit_code : return code (0 usually means success)
-    """
-    command: str
-    stdout: str
-    stderr: str
-    exit_code: int
+from models.command_result import CommandResult
+from utils.decorators import validate_ip, timing, retry
+from utils.shell import execute_command
+from utils.tool_checker import ensure_tool_exists
 
 
 class NmapHandler:
@@ -55,61 +41,54 @@ class NmapHandler:
     # ---------------------------
     # Internal helpers
     # ---------------------------
-    def _ensure_nmap_exists(self) -> None:
-        """
-        Checks if nmap is available in PATH.
-        If not, raise a clear error.
-        """
-        if shutil.which("nmap") is None:
-            raise RuntimeError(
-                "Nmap is not installed or not in PATH. "
-                "Install nmap and ensure it is accessible from terminal."
-            )
-
     def _run(self, cmd: List[str]) -> CommandResult:
         """
         Runs a command and captures output safely.
         """
-        self._ensure_nmap_exists()
-
-        command_str = " ".join(cmd)
-
-        try:
-            completed = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_sec
-            )
-
-            return CommandResult(
-                command=command_str,
-                stdout=completed.stdout or "",
-                stderr=completed.stderr or "",
-                exit_code=completed.returncode
-            )
-
-        except subprocess.TimeoutExpired as e:
-            # If nmap takes too long, we still return whatever we have.
-            return CommandResult(
-                command=command_str,
-                stdout=(e.stdout or ""),
-                stderr=(e.stderr or "") + "\n[!] Timeout expired.",
-                exit_code=-1
-            )
-
-        except Exception as e:
-            # Any other unexpected error
-            return CommandResult(
-                command=command_str,
-                stdout="",
-                stderr=f"[!] Exception running command: {e}",
-                exit_code=-1
-            )
+        ensure_tool_exists(
+            "nmap",
+            install_hint="Install with: sudo apt install nmap"
+        )
+        return execute_command(cmd, timeout=self.timeout_sec)
 
     # ---------------------------
     # Public scan methods
     # ---------------------------
+    @validate_ip
+    @timing
+    def scan_targets(self, targets: str) -> CommandResult:
+        """
+        Scan targets using standard service enumeration.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+                    Examples: "192.168.1.1" or "192.168.1.0/24" or "192.168.1.1,192.168.1.2"
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        # Normalize targets and split on commas/whitespace for subprocess
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for Nmap scan.")
+
+        cmd = [
+            "nmap",
+            "-sS",      # TCP SYN scan (half-open)
+            "-sV",      # Version detection
+            "-sC",      # Default safe scripts
+            "-O",       # OS detection
+            "-Pn",      # Skip ping (useful in restricted networks)
+            "-oN",      # Normal output format
+            "-",        # Output to stdout
+            *target_args
+        ]
+        return self._run(cmd)
+
+    @validate_ip
+    @timing
     def tcp_default_scan(self, ip: str) -> CommandResult:
         """
         General enumeration scan:
@@ -122,6 +101,8 @@ class NmapHandler:
         cmd = ["nmap", "-sS", "-sV", "-sC", "-O", "-Pn", ip]
         return self._run(cmd)
 
+    @validate_ip
+    @timing
     def traceroute_scan(self, ip: str) -> CommandResult:
         """
         Topology mapping / traceroute via nmap.
@@ -129,18 +110,155 @@ class NmapHandler:
         cmd = ["nmap", "--traceroute", "-Pn", ip]
         return self._run(cmd)
 
+    @timing
+    def host_discovery(self, targets: str, exclude: str = "") -> CommandResult:
+        """
+        Fast host discovery using ping sweep (-sn).
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated targets
+                    Examples: "192.168.1.1" or "192.168.1.0/24"
+            exclude: Hosts to exclude from scan (comma-separated)
+
+        Returns:
+            CommandResult with greppable output containing live hosts
+        """
+        # Normalize targets and split on commas/whitespace for subprocess
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for host discovery.")
+
+        cmd = [
+            "nmap",
+            "-sn",      # Ping sweep only (no port scan)
+            "-oG",     # Greppable output format
+            "-",       # Output to stdout
+        ]
+
+        # Add exclusion if provided
+        if exclude and exclude.strip():
+            cmd.extend(["--exclude", exclude.strip()])
+
+        cmd.extend(target_args)
+        return self._run(cmd)
+
+    @validate_ip
+    @timing
     def smb_enum_scan(self, ip: str) -> CommandResult:
         """
         Windows SMB enumeration (port 445) using safe NSE scripts.
         """
-        cmd = ["nmap", "-p", "445", "--script", "smb-enum-shares,smb-enum-users", "-Pn", ip]
+        cmd = ["nmap", "-p", "445", "--script",
+               "smb-enum-shares,smb-enum-users", "-Pn", ip]
         return self._run(cmd)
 
+    @validate_ip
+    @timing
     def netbios_enum_scan(self, ip: str) -> CommandResult:
         """
         Windows NetBIOS enumeration using nbstat script.
         """
         cmd = ["nmap", "-p", "137,138,139", "--script", "nbstat", "-Pn", ip]
+        return self._run(cmd)
+
+    @timing
+    def tcp_quick_scan(self, targets: str) -> CommandResult:
+        """
+        Quick TCP scan - top 100 ports only for fast enumeration.
+
+        Useful for rapid network discovery when time is limited.
+        Uses --top-ports 100 to scan most common ports.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for quick TCP scan.")
+
+        cmd = [
+            "nmap",
+            "-sS",           # TCP SYN scan
+            "-Pn",           # Skip ping
+            "--top-ports",   # Scan most common ports
+            "100",           # Top 100 ports
+            "-oN",
+            "-",
+            *target_args
+        ]
+        return self._run(cmd)
+
+    @timing
+    def tcp_full_scan(self, targets: str) -> CommandResult:
+        """
+        Full TCP scan - all 65535 ports with version detection.
+
+        Comprehensive scan that checks every TCP port. This can take
+        significant time depending on network conditions and target count.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for full TCP scan.")
+
+        cmd = [
+            "nmap",
+            "-sS",      # TCP SYN scan
+            "-sV",      # Version detection
+            "-sC",      # Default scripts
+            "-O",       # OS detection
+            "-p-",      # All 65535 ports
+            "-Pn",      # Skip ping
+            "-oN",
+            "-",
+            *target_args
+        ]
+        return self._run(cmd)
+
+    @timing
+    def udp_scan(self, targets: str) -> CommandResult:
+        """
+        UDP scan - common UDP ports for service discovery.
+
+        Scans top 20 UDP ports (DNS, SNMP, DHCP, etc.).
+        UDP scanning is slower than TCP due to protocol characteristics.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for UDP scan.")
+
+        cmd = [
+            "nmap",
+            "-sU",           # UDP scan
+            "-Pn",           # Skip ping
+            "--top-ports",   # Scan most common UDP ports
+            "20",            # Top 20 UDP ports
+            "-oN",
+            "-",
+            *target_args
+        ]
         return self._run(cmd)
 
 

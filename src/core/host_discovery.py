@@ -43,13 +43,22 @@ def _is_ip(value: str) -> bool:
         return False
 
 
-def _expand_cidr(value: str) -> List[str]:
+def _expand_cidr(value: str):
     """
-    Expands a CIDR range into individual host IPs.
-    Example: 192.168.1.0/30 -> ["192.168.1.1", "192.168.1.2"]
+    Generator that yields individual host IPs from a CIDR range.
+
+    This uses a generator for memory efficiency when dealing with large networks.
+    For example, a /16 network has 65,534 hosts - using a generator means
+    we don't need to store all IPs in memory at once.
+
+    Example: 192.168.1.0/30 yields "192.168.1.1", "192.168.1.2"
+
+    Yields:
+        str: Individual IP addresses from the CIDR range
     """
     network = ipaddress.ip_network(value, strict=False)
-    return [str(ip) for ip in network.hosts()]
+    for ip in network.hosts():
+        yield str(ip)
 
 
 def _resolve_dns(name: str) -> List[str]:
