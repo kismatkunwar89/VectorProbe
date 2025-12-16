@@ -38,73 +38,20 @@ VectorProbe performs comprehensive unauthenticated Active Directory enumeration 
 
 ### Step 1: Install Python 3.12+
 
-VectorProbe enforces a minimum of Python **3.12**. Running on 3.13+ works, but you will see a warning because grading was performed on Python 3.12.x. Pick whichever path below matches your operating system.
+VectorProbe requires Python **3.12** or newer.
 
-**Debian/Ubuntu/Kali (package available)**
 ```bash
 sudo apt update
-sudo apt install -y python3.12 python3.12-venv python3.12-dev
+sudo apt install -y python3.12 python3.12-venv
 python3.12 --version  # confirm 3.12.x
-```
-
-**Debian/Ubuntu/Kali (no python3.12 package)**
-```bash
-# Build dependencies
-sudo apt update
-sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
-    libreadline-dev libsqlite3-dev libffi-dev libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev
-
-# Download + build from source
-curl -O https://www.python.org/ftp/python/3.12.9/Python-3.12.9.tgz
-tar -xf Python-3.12.9.tgz
-cd Python-3.12.9
-./configure --enable-optimizations --prefix=$HOME/.local/python-3.12
-make -j"$(nproc)"
-make install
-
-# Use ~/.local/python-3.12/bin/python3.12 when creating the venv
-```
-_Alternative_: install pyenv and run `pyenv install 3.12.9` followed by `pyenv local 3.12.9`.
-
-**Arch Linux**
-```bash
-sudo pacman -S python  # Arch already ships Python 3.12.x
-```
-
-**macOS**
-```bash
-brew install python@3.12
-python3.12 --version
 ```
 
 ### Step 2: Install System Dependencies
 
-**Debian/Ubuntu/Kali:**
 ```bash
 sudo apt install -y nmap exploitdb
-# Optional - AD/LDAP helpers
-sudo apt install -y ldap-utils dnsutils samba-common-bin
-# Optional - SMB helper
-sudo apt install -y enum4linux-ng
-```
-
-**Arch Linux:**
-```bash
-# Required tools
-sudo pacman -S nmap exploitdb
-
-# Optional - for Active Directory / LDAP enumeration
-sudo pacman -S openldap bind samba
-```
-
-**macOS:**
-```bash
-# Required tools
-brew install nmap exploitdb
-
-# Optional - for Active Directory / LDAP enumeration
-brew install openldap bind samba
+# Optional - for AD/LDAP and SMB enumeration
+sudo apt install -y ldap-utils dnsutils samba-common-bin enum4linux-ng
 ```
 
 ### Step 3: Install VectorProbe
