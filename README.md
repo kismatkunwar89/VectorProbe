@@ -135,20 +135,11 @@ brew install openldap bind samba
 
 ### Running with Sudo (Required for Network Scanning)
 
-Since network scanning requires raw socket access, you need sudo. When using sudo with a virtual environment, use one of these methods:
-
-**Method 1: Activate venv first, then use sudo with full path**
+Since network scanning requires raw socket access, you need sudo:
 ```bash
 source venv/bin/activate
 sudo $(which python) src/main.py -t <target>
 ```
-
-**Method 2: Use the wrapper script (recommended)**
-```bash
-sudo ./vectorprobe.sh -t <target>
-```
-
-The wrapper automatically uses the venv Python interpreter.
 
 ## Usage
 
