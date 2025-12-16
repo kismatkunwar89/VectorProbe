@@ -19,6 +19,16 @@
 - `.local` domains cannot be resolved via external DNS servers
 - DC detection relies on open ports (389, 636, 88) and SMB shares
 
+## Vulnerability Correlation
+- Searchsploit integration is a proof-of-concept implementation
+- Query matching can produce false positives due to generic service names
+- Can be improved with better filtering and CVE correlation
+
+## Testing Coverage
+- Tool tested on limited number of hosts due to time constraints
+- Some edge cases may produce false positives or unexpected results
+- Additional testing recommended for production use
+
 ## External Dependencies
 - Requires: `nmap`, `searchsploit`
 - Optional: `enum4linux-ng`, `ldap-utils`, `dnsutils`, `samba-common-bin`
