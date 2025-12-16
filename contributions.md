@@ -27,7 +27,15 @@
 - **Report Generator**: Markdown output, UTC timestamps, verified/unverified sections
 - **Testing**: pytest framework setup, fixtures, 205 unit tests
 
-## outofscope
+## AI Assistance
+
+AI tools (Claude) were used throughout the project for:
+- Code review and debugging
+- Test case generation and validation
+- Documentation writing and formatting
+- Architecture guidance and best practices
+
+## Out of Scope
 
 - **Vulnerability Correlation**: searchsploit handler, parser, and query builder
 
