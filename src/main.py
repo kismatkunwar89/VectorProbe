@@ -351,9 +351,18 @@ def main():
         # Initialize Nmap handler
         nmap = NmapHandler(timeout_sec=600)
 
-        # Run Nmap
-        logger.info(f"[+] Starting Nmap scan...")
-        result = nmap.scan_targets(targets=nmap_targets)
+        # Run Nmap based on scan type
+        scan_type = args.scan_type
+        logger.info(f"[+] Starting Nmap {scan_type} scan...")
+
+        if scan_type == "quick":
+            result = nmap.tcp_quick_scan(targets=nmap_targets)
+        elif scan_type == "full":
+            result = nmap.tcp_full_scan(targets=nmap_targets)
+        elif scan_type == "udp":
+            result = nmap.udp_scan(targets=nmap_targets)
+        else:  # default
+            result = nmap.scan_targets(targets=nmap_targets)
 
         logger.info(f"[+] Nmap exit code: {result.exit_code}")
 

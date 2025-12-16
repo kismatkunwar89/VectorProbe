@@ -24,14 +24,7 @@
   - Consolidated duplicate code: Created shared `CommandResult` model and centralized command execution in `shell.py`.
   - Created generic tool availability checker (`tool_checker.py`) eliminating duplicate validation across handlers.
   - Fixed `nmblookup_failure_recorded` undefined variable bug in NetBIOS enumeration.
-- **Testing & Validation:**
-  - Established the `pytest` framework, fixtures, and `pytest.ini` configuration.
-  - Wrote the complete suite of unit tests for all parsers and handlers, achieving 100% pass rate.
-- **Reporting & UX:**
-  - Enhanced the report generator with the scan summary, AD information section, and per-host command outputs.
-  - Created the ASCII art banner for the CLI.
-  - Improved report formatting with clear separation of verified vs. unverified data.
-  - Added command execution details with exit codes and error handling.
+
 
 ### Gamvirta Poudel
 - **Initial Handler Implementation:**
@@ -43,3 +36,11 @@
   - Wrote unit tests for the vulnerability parser.
 - **Data Modeling:**
   - Updated the data models (`ServiceResult`) to include and store exploit information.
+  - **Testing & Validation:**
+  - Established the `pytest` framework, fixtures, and `pytest.ini` configuration.
+  - Wrote the complete suite of unit tests for all parsers and handlers, achieving 100% pass rate.
+- **Reporting & UX:**
+  - Enhanced the report generator with the scan summary, AD information section, and per-host command outputs.
+  - Created the ASCII art banner for the CLI.
+  - Improved report formatting with clear separation of verified vs. unverified data.
+  - Added command execution details with exit codes and error handling.

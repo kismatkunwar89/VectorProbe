@@ -136,6 +136,29 @@ Disable prompts (useful for automation):
 ```bash
 python src/main.py -t example.com --no-prompt
 ```
+
+### Scan Type Options
+
+**Default Scan** (Top 1000 TCP ports with service/OS detection):
+```bash
+python src/main.py -t 192.168.1.100 --scan-type default
+```
+
+**Quick Scan** (Top 100 TCP ports for fast enumeration):
+```bash
+python src/main.py -t 192.168.1.0/24 --scan-type quick
+```
+
+**Full Scan** (All 65535 TCP ports - comprehensive but slow):
+```bash
+python src/main.py -t 192.168.1.100 --scan-type full
+```
+
+**UDP Scan** (Top 20 UDP ports - DNS, SNMP, DHCP, etc.):
+```bash
+python src/main.py -t 192.168.1.100 --scan-type udp
+```
+
 ### Active Directory Enumeration Examples
 
 Scan a Windows Domain Controller to enumerate LDAP and domain information:
@@ -147,7 +170,7 @@ python src/main.py -t <DC_IP> -o ad_enumeration_report.md
 ## Command-Line Options
 
 ```
-usage: VectorProbe [-h] -t TARGETS [-x EXCLUDE] [-o OUTPUT] [--no-prompt]
+usage: VectorProbe [-h] -t TARGETS [-x EXCLUDE] [-o OUTPUT] [--scan-type {default,quick,full,udp}] [--no-prompt]
 
 options:
   -t TARGETS, --targets TARGETS

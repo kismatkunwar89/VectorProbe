@@ -32,6 +32,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--scan-type",
+        choices=["default", "quick", "full", "udp"],
+        default="default",
+        help=(
+            "Scan type: "
+            "'default' = TCP SYN scan on top 1000 ports with service/OS detection (-sS -sV -sC -O); "
+            "'quick' = Fast scan on top 100 TCP ports (--top-ports 100); "
+            "'full' = Complete scan of all 65535 TCP ports (-p-); "
+            "'udp' = UDP scan on top 20 common UDP ports (-sU --top-ports 20)"
+        )
+    )
+
+    parser.add_argument(
         "--no-prompt",
         action="store_true",
         help="Disable interactive prompts (DNS safety prompt)."

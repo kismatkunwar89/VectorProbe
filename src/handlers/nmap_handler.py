@@ -167,7 +167,7 @@ class NmapHandler:
     def tcp_quick_scan(self, targets: str) -> CommandResult:
         """
         Quick TCP scan - top 100 ports only for fast enumeration.
-        
+
         Useful for rapid network discovery when time is limited.
         Uses --top-ports 100 to scan most common ports.
 
@@ -199,7 +199,7 @@ class NmapHandler:
     def tcp_full_scan(self, targets: str) -> CommandResult:
         """
         Full TCP scan - all 65535 ports with version detection.
-        
+
         Comprehensive scan that checks every TCP port. This can take
         significant time depending on network conditions and target count.
 
@@ -233,7 +233,7 @@ class NmapHandler:
     def udp_scan(self, targets: str) -> CommandResult:
         """
         UDP scan - common UDP ports for service discovery.
-        
+
         Scans top 20 UDP ports (DNS, SNMP, DHCP, etc.).
         UDP scanning is slower than TCP due to protocol characteristics.
 

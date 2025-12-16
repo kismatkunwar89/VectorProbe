@@ -36,12 +36,19 @@ python src/main.py [options] <targets>
 ### Command-Line Options
 
 - **-h, --help**: Display help information and usage examples.
-- **-o <path>**: Override the default output file name and location.
-- **<targets>**: Specify the target hosts. This can include:
+- **-t, --targets**: Specify the target hosts. This can include:
   - Individual IPv4 addresses (e.g., 192.168.1.1)
   - DNS records (e.g., server.example.com)
   - Subnets in CIDR notation (e.g., 192.168.1.0/24)
   - Comma-separated lists of any combination of the above
+- **-x, --exclude**: Exclude specific hosts from the scan (same format as targets)
+- **-o, --output <path>**: Override the default output file name and location.
+- **--scan-type {default,quick,full,udp}**: Choose scan type:
+  - **default**: TCP SYN scan on top 1000 ports with service/OS detection (recommended)
+  - **quick**: Fast scan on top 100 TCP ports (rapid discovery)
+  - **full**: Comprehensive scan of all 65535 TCP ports (time-intensive)
+  - **udp**: UDP scan on top 20 common UDP ports (DNS, SNMP, DHCP, etc.)
+- **--no-prompt**: Disable interactive prompts (useful for automation)
 
 ### Excluding Hosts
 
