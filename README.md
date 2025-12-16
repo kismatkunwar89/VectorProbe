@@ -36,14 +36,13 @@ VectorProbe performs comprehensive unauthenticated Active Directory enumeration 
 **Optional Tools (for enhanced functionality):**
 - enum4linux-ng (for SMB enumeration)
 
-### Step 1: Install Python 3.12+
+### Step 1: Verify Python 3.12+
 
-VectorProbe requires Python **3.12** or newer.
+VectorProbe requires Python **3.12** or newer. Kali Linux 2024.4+ includes Python 3.12 by default:
 
 ```bash
-sudo apt update
-sudo apt install -y python3.12 python3.12-venv
-python3.12 --version  # confirm 3.12.x
+python3 --version  # Should show 3.12.x or newer
+sudo apt install -y python3-venv  # Install venv support
 ```
 
 ### Step 2: Install System Dependencies
@@ -62,10 +61,10 @@ sudo apt install -y ldap-utils dnsutils samba-common-bin enum4linux-ng
    cd ProjectFinalEthical
    ```
 
-2. **Create a virtual environment using Python 3.12:**
+2. **Create a virtual environment:**
    ```bash
-   python3.12 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   python3 -m venv venv
+   source venv/bin/activate
    ```
 
 3. **Install Python dependencies:**
