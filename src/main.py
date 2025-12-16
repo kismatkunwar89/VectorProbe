@@ -6,8 +6,20 @@ This is where the program starts. It sets up logging, parses command-line
 arguments, and kicks off the enumeration process.
 """
 
-import logging
 import sys
+
+# Enforce Python 3.12 requirement (project.md Section 2.1)
+if sys.version_info < (3, 12) or sys.version_info >= (3, 13):
+    print("ERROR: This script requires Python 3.12 specifically.")
+    print(
+        f"Current version: Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+    print("\nPlease install Python 3.12:")
+    print("  - Debian/Ubuntu: sudo apt install python3.12")
+    print("  - Arch: Use pyenv or build from source")
+    print("  - macOS: brew install python@3.12")
+    sys.exit(1)
+
+import logging
 from datetime import datetime
 from utils.logger import setup_logging
 from utils.banner import print_banner
