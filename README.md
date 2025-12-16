@@ -222,7 +222,7 @@ Scan a Windows Domain Controller to enumerate LDAP and domain information:
 ```bash
 python src/main.py -t <DC_IP>
 python src/main.py -t <DC_IP> -o ad_enumeration_report.md
-
+```
 
 ## Command-Line Options
 
@@ -230,13 +230,48 @@ python src/main.py -t <DC_IP> -o ad_enumeration_report.md
 usage: VectorProbe [-h] -t TARGETS [-x EXCLUDE] [-o OUTPUT] [--scan-type {default,quick,full,udp}] [--no-prompt]
 
 options:
+  -h, --help            Show help message and exit
   -t TARGETS, --targets TARGETS
                         Targets to scan: IP, CIDR, DNS, or comma-separated mix.
   -x EXCLUDE, --exclude EXCLUDE
-                        Excluded out-of-scope hosts.
+                        Excluded out-of-scope hosts: IP, CIDR, DNS, or comma-separated mix.
   -o OUTPUT, --output OUTPUT
-                        Output report path/filename.
-  --no-prompt           Disable interactive prompts.
+                        Output report path/filename. Defaults to UTC timestamp.
+  --scan-type {default,quick,full,udp}
+                        Scan type: 'default' = TCP SYN top 1000 ports with service/OS detection;
+                        'quick' = Fast scan top 100 TCP ports; 'full' = All 65535 TCP ports;
+                        'udp' = Top 20 UDP ports.
+  --no-prompt           Disable interactive prompts (DNS safety prompt).
+```
+
+## DNS Safety Feature
+
+When DNS names are provided as targets (e.g., `server.example.com`), VectorProbe implements a safety check to prevent accidental scope violations due to DNS misconfiguration:
+
+1. **Displays** the currently configured DNS servers on your system
+2. **Lists** all DNS targets that will be resolved
+3. **Prompts** for confirmation with `[y/N]` (defaults to No if no input)
+
+This prevents scanning unintended targets if DNS is misconfigured or hijacked.
+
+```bash
+# Example: DNS safety prompt in action
+python src/main.py -t webserver.company.com
+
+[DNS SAFETY CHECK]
+Configured DNS servers:
+  - 192.168.1.1
+  - 8.8.8.8
+
+DNS targets to resolve:
+  - webserver.company.com
+
+Proceed with DNS resolution? [y/N]: y
+```
+
+Use `--no-prompt` to disable this check (for automation):
+```bash
+python src/main.py -t webserver.company.com --no-prompt
 ```
 
 ## Workflow
