@@ -163,6 +163,104 @@ class NmapHandler:
         cmd = ["nmap", "-p", "137,138,139", "--script", "nbstat", "-Pn", ip]
         return self._run(cmd)
 
+    @timing
+    def tcp_quick_scan(self, targets: str) -> CommandResult:
+        """
+        Quick TCP scan - top 100 ports only for fast enumeration.
+        
+        Useful for rapid network discovery when time is limited.
+        Uses --top-ports 100 to scan most common ports.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for quick TCP scan.")
+
+        cmd = [
+            "nmap",
+            "-sS",           # TCP SYN scan
+            "-Pn",           # Skip ping
+            "--top-ports",   # Scan most common ports
+            "100",           # Top 100 ports
+            "-oN",
+            "-",
+            *target_args
+        ]
+        return self._run(cmd)
+
+    @timing
+    def tcp_full_scan(self, targets: str) -> CommandResult:
+        """
+        Full TCP scan - all 65535 ports with version detection.
+        
+        Comprehensive scan that checks every TCP port. This can take
+        significant time depending on network conditions and target count.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for full TCP scan.")
+
+        cmd = [
+            "nmap",
+            "-sS",      # TCP SYN scan
+            "-sV",      # Version detection
+            "-sC",      # Default scripts
+            "-O",       # OS detection
+            "-p-",      # All 65535 ports
+            "-Pn",      # Skip ping
+            "-oN",
+            "-",
+            *target_args
+        ]
+        return self._run(cmd)
+
+    @timing
+    def udp_scan(self, targets: str) -> CommandResult:
+        """
+        UDP scan - common UDP ports for service discovery.
+        
+        Scans top 20 UDP ports (DNS, SNMP, DHCP, etc.).
+        UDP scanning is slower than TCP due to protocol characteristics.
+
+        Args:
+            targets: Target(s) - IP, CIDR, or comma-separated IPs
+
+        Returns:
+            CommandResult with command, stdout, stderr, exit_code
+        """
+        normalized = (targets or "").replace(',', ' ')
+        target_args = [token for token in normalized.split() if token]
+
+        if not target_args:
+            raise ValueError("No targets provided for UDP scan.")
+
+        cmd = [
+            "nmap",
+            "-sU",           # UDP scan
+            "-Pn",           # Skip ping
+            "--top-ports",   # Scan most common UDP ports
+            "20",            # Top 20 UDP ports
+            "-oN",
+            "-",
+            *target_args
+        ]
+        return self._run(cmd)
+
 
 # ---------------------------------------------------------------------------
 # Standalone testing (safe to delete later)
