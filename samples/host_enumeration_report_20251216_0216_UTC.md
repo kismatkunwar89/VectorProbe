@@ -1,39 +1,33 @@
-(venv)─(kali㉿kali-3)-[~/VectorProbe]
-└─$ cat vectorprobe_report_20251215_002605.md 
-
 # Network Enumeration Report
 
-**Generated on:** 2025-12-15 00:26:05 UTC
+**Generated on:** 2025-12-16 02:16:02 UTC
 
 ## Summary
 
 ### Scan Summary
 
-A total of **5** hosts were discovered.
+A total of **1** hosts were discovered.
 
 **Common Open Ports (Top 10):**
 
 | Port/Protocol | Count |
 |---------------|-------|
-| 135/tcp | 3 |
-| 139/tcp | 3 |
-| 445/tcp | 3 |
-| 3389/tcp | 3 |
-| 5985/tcp | 3 |
-| 53/tcp | 2 |
+| 53/tcp | 1 |
 | 88/tcp | 1 |
+| 135/tcp | 1 |
+| 139/tcp | 1 |
 | 389/tcp | 1 |
+| 445/tcp | 1 |
 | 464/tcp | 1 |
 | 593/tcp | 1 |
+| 636/tcp | 1 |
+| 3268/tcp | 1 |
 
 **Discovered Operating Systems:**
 
 | Operating System | Count |
 |------------------|-------|
-| Microsoft Windows 10 1709 - 21H2 | 2 |
-| Unknown | 1 |
 | Microsoft Windows Server 2016 or Server 2019 | 1 |
-| Linux 3.2 - 4.14, Linux 3.8 - 3.16 | 1 |
 
 ## Network Topology
 
@@ -41,39 +35,9 @@ A total of **5** hosts were discovered.
 
 | IP | Hostname | OS | Services | Status |
 |-------|----------|----|---------|---------|
-| 10.248.1.1 | None | Unknown | domain (53/tcp) | 🟢 Online |
-| 10.248.1.100 | FNN-WS1 | Microsoft Windows 10 1709 - 21H2 | msrpc (135/tcp), netbios-ssn (139/tcp), microsoft-ds (445/tcp)... (+2) | 🟢 Online |
-| 10.248.1.101 | FNN-WS2 | Microsoft Windows 10 1709 - 21H2 | msrpc (135/tcp), netbios-ssn (139/tcp), microsoft-ds (445/tcp)... (+2) | 🟢 Online |
-| 10.248.1.108 | None | Linux 3.2 - 4.14, Linux 3.8 - 3.16 | ssh (22/tcp), postgresql (5432/tcp) | 🟢 Online |
 | 10.248.1.2 | FNN-DC01 | Microsoft Windows Server 2016 or Server 2019 | domain (53/tcp), kerberos-sec (88/tcp), msrpc (135/tcp)... (+10) | 🟢 Online |
 
 ## Discovered Hosts
-
-### Host: 10.248.1.1
-
-#### Verified Information
-
-| Property | Value |
-|----------|-------|
-| IP Address | 10.248.1.1 |
-| Hostname | None |
-| OS Type | Unknown |
-
-**Active Services:**
-
-| Port | Protocol | Service | Fingerprint | Exploits |
-|------|----------|---------|-------------|----------|
-| 53 | tcp | domain | dnsmasq 2.90 | None |
-
-#### Unverified Information
-
-No unverified information to display.
-
-#### Command Outputs
-
-No specific commands were run against this host.
-
----
 
 ### Host: 10.248.1.2
 
@@ -183,7 +147,7 @@ ENUM4LINUX - next generation (v1.3.7)
  ==========================
 [*] Target ........... 10.248.1.2
 [*] Username ......... ''
-[*] Random Username .. 'tuyrfljq'
+[*] Random Username .. 'jcdpkyaq'
 [*] Password ......... ''
 [*] Timeout .......... 5 second(s)
 
@@ -251,7 +215,7 @@ Derived domain: FNN
 [*] Check for anonymous access (null session)
 [-] Could not establish null session: STATUS_ACCESS_DENIED
 [*] Check for guest access
-[-] Could not establish session using 'tuyrfljq', password ''
+[-] Could not establish session using 'jcdpkyaq', password ''
 [-] Sessions failed, neither null nor user sessions were possible
 
  =============================================
@@ -274,7 +238,7 @@ Server type string: null
 
 [!] Aborting remainder of tests since sessions failed, rerun with valid credentials
 
-Completed after 0.15 seconds
+Completed after 0.18 seconds
 ```
 
 **Command:** `nmblookup -M 10.248.1.2`
@@ -294,7 +258,7 @@ name_query failed to find name 10.248.1.2#1d
 
 #
 dn:
-currentTime: 20251215002603.0Z
+currentTime: 20251216021601.0Z
 subschemaSubentry: CN=Aggregate,CN=Schema,CN=Configuration,DC=fnn,DC=local
 dsServiceName: CN=NTDS Settings,CN=FNN-DC01,CN=Servers,CN=Default-First-Site-N
  ame,CN=Sites,CN=Configuration,DC=fnn,DC=local
@@ -367,7 +331,7 @@ supportedLDAPPolicies: MaxValRange
 supportedLDAPPolicies: MaxValRangeTransitive
 supportedLDAPPolicies: ThreadMemoryLimit
 supportedLDAPPolicies: SystemMemoryLimitPercent
-highestCommittedUSN: 91557
+highestCommittedUSN: 91680
 supportedSASLMechanisms: GSSAPI
 supportedSASLMechanisms: GSS-SPNEGO
 supportedSASLMechanisms: EXTERNAL
@@ -398,16 +362,16 @@ result: 0 Success
 
 **Command:** `nmap -p 389 --script ldap-rootdse 10.248.1.2`
 ```
-Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-14 19:26 EST
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-15 21:16 EST
 Nmap scan report for 10.248.1.2
-Host is up (0.00033s latency).
+Host is up (0.00039s latency).
 
 PORT    STATE SERVICE
 389/tcp open  ldap
 | ldap-rootdse: 
 | LDAP Results
 |   <ROOT>
-|       currentTime: 20251215002604.0Z
+|       currentTime: 20251216021601.0Z
 |       subschemaSubentry: CN=Aggregate,CN=Schema,CN=Configuration,DC=fnn,DC=local
 |       dsServiceName: CN=NTDS Settings,CN=FNN-DC01,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=fnn,DC=local
 |       namingContexts: DC=fnn,DC=local
@@ -479,7 +443,7 @@ PORT    STATE SERVICE
 |       supportedLDAPPolicies: MaxValRangeTransitive
 |       supportedLDAPPolicies: ThreadMemoryLimit
 |       supportedLDAPPolicies: SystemMemoryLimitPercent
-|       highestCommittedUSN: 91557
+|       highestCommittedUSN: 91680
 |       supportedSASLMechanisms: GSSAPI
 |       supportedSASLMechanisms: GSS-SPNEGO
 |       supportedSASLMechanisms: EXTERNAL
@@ -501,14 +465,14 @@ PORT    STATE SERVICE
 MAC Address: F0:DB:30:76:EE:EA (Yottabyte)
 Service Info: Host: FNN-DC01; OS: Windows
 
-Nmap done: 1 IP address (1 host up) scanned in 0.29 seconds
+Nmap done: 1 IP address (1 host up) scanned in 0.27 seconds
 ```
 
 **Command:** `nmap -p 445 --script smb-security-mode,smb2-security-mode 10.248.1.2`
 ```
-Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-14 19:26 EST
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-15 21:16 EST
 Nmap scan report for 10.248.1.2
-Host is up (0.00045s latency).
+Host is up (0.00036s latency).
 
 PORT    STATE SERVICE
 445/tcp open  microsoft-ds
@@ -542,331 +506,16 @@ Looking up status of 10.248.1.2
 
 **Command:** `nmap -p 88 --script krb5-enum-users --script-args krb5-enum-users.realm=FNN.LOCAL,userdb=/dev/null 10.248.1.2`
 ```
-Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-14 19:26 EST
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-15 21:16 EST
 Nmap scan report for 10.248.1.2
-Host is up (0.00032s latency).
+Host is up (0.00036s latency).
 
 PORT   STATE SERVICE
 88/tcp open  kerberos-sec
 MAC Address: F0:DB:30:76:EE:EA (Yottabyte)
 
-Nmap done: 1 IP address (1 host up) scanned in 0.25 seconds
+Nmap done: 1 IP address (1 host up) scanned in 0.27 seconds
 ```
-
----
-
-### Host: 10.248.1.100
-
-#### Verified Information
-
-| Property | Value |
-|----------|-------|
-| IP Address | 10.248.1.100 |
-| Hostname | FNN-WS1 |
-| OS Type | Microsoft Windows 10 1709 - 21H2 |
-
-#### Active Directory Information (Unauthenticated)
-
-| Attribute | Value |
-|-----------|-------|
-| Domain | FNN |
-| Probable Role | Member Server / Workstation |
-
-**Active Services:**
-
-| Port | Protocol | Service | Fingerprint | Exploits |
-|------|----------|---------|-------------|----------|
-| 135 | tcp | msrpc | Microsoft Windows RPC | None |
-| 139 | tcp | netbios-ssn | Microsoft Windows netbios-ssn | None |
-| 445 | tcp | microsoft-ds | Windows 10 | None |
-| 3389 | tcp | ms-wbt-server | Microsoft Terminal Services | None |
-| 5985 | tcp | http | Microsoft HTTPAPI httpd 2.0 | None |
-
-#### SMB Enumeration
-
-**OS:** Windows 10 Pro 18363
-
-**Null Sessions:** Disabled
-
-#### NetBIOS Enumeration
-
-#### Unverified Information
-
-No unverified information to display.
-
-#### Command Outputs
-
-**Command:** `enum4linux-ng -A 10.248.1.100`
-```
-ENUM4LINUX - next generation (v1.3.7)
-
- ==========================
-|    Target Information    |
- ==========================
-[*] Target ........... 10.248.1.100
-[*] Username ......... ''
-[*] Random Username .. 'iroxdnqx'
-[*] Password ......... ''
-[*] Timeout .......... 5 second(s)
-
- =====================================
-|    Listener Scan on 10.248.1.100    |
- =====================================
-[*] Checking LDAP
-[-] Could not connect to LDAP on 389/tcp: connection refused
-[*] Checking LDAPS
-[-] Could not connect to LDAPS on 636/tcp: connection refused
-[*] Checking SMB
-[+] SMB is accessible on 445/tcp
-[*] Checking SMB over NetBIOS
-[+] SMB over NetBIOS is accessible on 139/tcp
-
- ===========================================================
-|    NetBIOS Names and Workgroup/Domain for 10.248.1.100    |
- ===========================================================
-[+] Got domain/workgroup name: FNN
-[+] Full NetBIOS names information:
-- FNN-WS1         <00> -         B <ACTIVE>  Workstation Service                                                                                            
-- FNN             <00> - <GROUP> B <ACTIVE>  Domain/Workgroup Name                                                                                          
-- FNN-WS1         <20> -         B <ACTIVE>  File Server Service                                                                                            
-- FNN             <1e> - <GROUP> B <ACTIVE>  Browser Service Elections                                                                                      
-- FNN             <1d> -         B <ACTIVE>  Master Browser                                                                                                 
-- ..__MSBROWSE__. <01> - <GROUP> B <ACTIVE>  Master Browser                                                                                                 
-- MAC Address = F0-DB-30-76-EE-ED                                                                                                                           
-
- =========================================
-|    SMB Dialect Check on 10.248.1.100    |
- =========================================
-[*] Trying on 445/tcp
-[+] Supported dialects and settings:
-Supported dialects:                                                                                                                                         
-  SMB 1.0: true                                                                                                                                             
-  SMB 2.0.2: true                                                                                                                                           
-  SMB 2.1: true                                                                                                                                             
-  SMB 3.0: true                                                                                                                                             
-  SMB 3.1.1: true                                                                                                                                           
-Preferred dialect: SMB 3.0                                                                                                                                  
-SMB1 only: false                                                                                                                                            
-SMB signing required: false                                                                                                                                 
-
- ===========================================================
-|    Domain Information via SMB session for 10.248.1.100    |
- ===========================================================
-[*] Enumerating via unauthenticated SMB session on 445/tcp
-[+] Found domain information via SMB
-NetBIOS computer name: FNN-WS1                                                                                                                              
-NetBIOS domain name: FNN                                                                                                                                    
-DNS domain: fnn.local                                                                                                                                       
-FQDN: FNN-WS1.fnn.local                                                                                                                                     
-Derived membership: domain member                                                                                                                           
-Derived domain: FNN                                                                                                                                         
-
- =========================================
-|    RPC Session Check on 10.248.1.100    |
- =========================================
-[*] Check for anonymous access (null session)
-[-] Could not establish null session: STATUS_ACCESS_DENIED
-[*] Check for guest access
-[-] Could not establish session using 'iroxdnqx', password ''
-[-] Sessions failed, neither null nor user sessions were possible
-
- ===============================================
-|    OS Information via RPC for 10.248.1.100    |
- ===============================================
-[*] Enumerating via unauthenticated SMB session on 445/tcp
-[+] Found OS information via SMB
-[*] Enumerating via 'srvinfo'
-[-] Skipping 'srvinfo' run, not possible with provided credentials
-[+] After merging OS information we have the following result:
-OS: Windows 10 Pro 18363                                                                                                                                    
-OS version: '10.0'                                                                                                                                          
-OS release: '1903'                                                                                                                                          
-OS build: '18362'                                                                                                                                           
-Native OS: Windows 10 Pro 18363                                                                                                                             
-Native LAN manager: Windows 10 Pro 6.3                                                                                                                      
-Platform id: null                                                                                                                                           
-Server type: null                                                                                                                                           
-Server type string: null                                                                                                                                    
-
-[!] Aborting remainder of tests since sessions failed, rerun with valid credentials
-
-Completed after 0.37 seconds
-```
-
-**Command:** `nmblookup -M 10.248.1.100`
-```
-name_query failed to find name 10.248.1.100#1d
-```
-
----
-
-### Host: 10.248.1.101
-
-#### Verified Information
-
-| Property | Value |
-|----------|-------|
-| IP Address | 10.248.1.101 |
-| Hostname | FNN-WS2 |
-| OS Type | Microsoft Windows 10 1709 - 21H2 |
-
-#### Active Directory Information (Unauthenticated)
-
-| Attribute | Value |
-|-----------|-------|
-| Domain | FNN |
-| Probable Role | Member Server / Workstation |
-
-**Active Services:**
-
-| Port | Protocol | Service | Fingerprint | Exploits |
-|------|----------|---------|-------------|----------|
-| 135 | tcp | msrpc | Microsoft Windows RPC | None |
-| 139 | tcp | netbios-ssn | Microsoft Windows netbios-ssn | None |
-| 445 | tcp | microsoft-ds | Windows 10 | None |
-| 3389 | tcp | ms-wbt-server | Microsoft Terminal Services | None |
-| 5985 | tcp | http | Microsoft HTTPAPI httpd 2.0 | None |
-
-#### SMB Enumeration
-
-**OS:** Windows 10 Pro 18363
-
-**Null Sessions:** Disabled
-
-#### NetBIOS Enumeration
-
-#### Unverified Information
-
-No unverified information to display.
-
-#### Command Outputs
-
-**Command:** `enum4linux-ng -A 10.248.1.101`
-```
-ENUM4LINUX - next generation (v1.3.7)
-
- ==========================
-|    Target Information    |
- ==========================
-[*] Target ........... 10.248.1.101
-[*] Username ......... ''
-[*] Random Username .. 'qwsijdsg'
-[*] Password ......... ''
-[*] Timeout .......... 5 second(s)
-
- =====================================
-|    Listener Scan on 10.248.1.101    |
- =====================================
-[*] Checking LDAP
-[-] Could not connect to LDAP on 389/tcp: connection refused
-[*] Checking LDAPS
-[-] Could not connect to LDAPS on 636/tcp: connection refused
-[*] Checking SMB
-[+] SMB is accessible on 445/tcp
-[*] Checking SMB over NetBIOS
-[+] SMB over NetBIOS is accessible on 139/tcp
-
- ===========================================================
-|    NetBIOS Names and Workgroup/Domain for 10.248.1.101    |
- ===========================================================
-[+] Got domain/workgroup name: FNN
-[+] Full NetBIOS names information:
-- FNN             <00> - <GROUP> B <ACTIVE>  Domain/Workgroup Name                                                                                          
-- FNN-WS2         <00> -         B <ACTIVE>  Workstation Service                                                                                            
-- FNN-WS2         <20> -         B <ACTIVE>  File Server Service                                                                                            
-- FNN             <1e> - <GROUP> B <ACTIVE>  Browser Service Elections                                                                                      
-- MAC Address = F0-DB-30-76-EE-EE                                                                                                                           
-
- =========================================
-|    SMB Dialect Check on 10.248.1.101    |
- =========================================
-[*] Trying on 445/tcp
-[+] Supported dialects and settings:
-Supported dialects:                                                                                                                                         
-  SMB 1.0: true                                                                                                                                             
-  SMB 2.0.2: true                                                                                                                                           
-  SMB 2.1: true                                                                                                                                             
-  SMB 3.0: true                                                                                                                                             
-  SMB 3.1.1: true                                                                                                                                           
-Preferred dialect: SMB 3.0                                                                                                                                  
-SMB1 only: false                                                                                                                                            
-SMB signing required: false                                                                                                                                 
-
- ===========================================================
-|    Domain Information via SMB session for 10.248.1.101    |
- ===========================================================
-[*] Enumerating via unauthenticated SMB session on 445/tcp
-[+] Found domain information via SMB
-NetBIOS computer name: FNN-WS2                                                                                                                              
-NetBIOS domain name: FNN                                                                                                                                    
-DNS domain: fnn.local                                                                                                                                       
-FQDN: FNN-WS2.fnn.local                                                                                                                                     
-Derived membership: domain member                                                                                                                           
-Derived domain: FNN                                                                                                                                         
-
- =========================================
-|    RPC Session Check on 10.248.1.101    |
- =========================================
-[*] Check for anonymous access (null session)
-[-] Could not establish null session: STATUS_ACCESS_DENIED
-[*] Check for guest access
-[-] Could not establish session using 'qwsijdsg', password ''
-[-] Sessions failed, neither null nor user sessions were possible
-
- ===============================================
-|    OS Information via RPC for 10.248.1.101    |
- ===============================================
-[*] Enumerating via unauthenticated SMB session on 445/tcp
-[+] Found OS information via SMB
-[*] Enumerating via 'srvinfo'
-[-] Skipping 'srvinfo' run, not possible with provided credentials
-[+] After merging OS information we have the following result:
-OS: Windows 10 Pro 18363                                                                                                                                    
-OS version: '10.0'                                                                                                                                          
-OS release: '1903'                                                                                                                                          
-OS build: '18362'                                                                                                                                           
-Native OS: Windows 10 Pro 18363                                                                                                                             
-Native LAN manager: Windows 10 Pro 6.3                                                                                                                      
-Platform id: null                                                                                                                                           
-Server type: null                                                                                                                                           
-Server type string: null                                                                                                                                    
-
-[!] Aborting remainder of tests since sessions failed, rerun with valid credentials
-
-Completed after 0.49 seconds
-```
-
-**Command:** `nmblookup -M 10.248.1.101`
-```
-name_query failed to find name 10.248.1.101#1d
-```
-
----
-
-### Host: 10.248.1.108
-
-#### Verified Information
-
-| Property | Value |
-|----------|-------|
-| IP Address | 10.248.1.108 |
-| Hostname | None |
-| OS Type | Linux 3.2 - 4.14, Linux 3.8 - 3.16 |
-
-**Active Services:**
-
-| Port | Protocol | Service | Fingerprint | Exploits |
-|------|----------|---------|-------------|----------|
-| 22 | tcp | ssh | OpenSSH 5.9 | None |
-| 5432 | tcp | postgresql | PostgreSQL DB 9.1.20 | None |
-
-#### Unverified Information
-
-No unverified information to display.
-
-#### Command Outputs
-
-No specific commands were run against this host.
 
 ---
 

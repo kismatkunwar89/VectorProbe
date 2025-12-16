@@ -29,20 +29,84 @@ VectorProbe performs comprehensive unauthenticated Active Directory enumeration 
 ### Prerequisites
 
 **Required Tools:**
-- Python 3.12 (specifically)
+- **Python 3.12** (specifically version 3.12.x - this is enforced by the tool)
 - nmap
 - searchsploit (from the `exploitdb` package)
 
 **Optional Tools (for enhanced functionality):**
 - enum4linux-ng (for SMB enumeration)
 
-### Install System Dependencies
+### Step 1: Install Python 3.12
+
+**IMPORTANT:** This tool requires Python 3.12 specifically and will not run on other versions.
+
+**Debian/Ubuntu/Kali:**
+
+**Option A: Install from deadsnakes PPA (if python3.12 not in default repos):**
+```bash
+# Add deadsnakes PPA for newer Python versions
+sudo apt-get update
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt-get update
+
+# Install Python 3.12
+sudo apt-get install -y python3.12 python3.12-venv python3.12-dev
+
+# Verify installation
+python3.12 --version  # Should show Python 3.12.x
+```
+
+**Option B: If package is available directly:**
+```bash
+sudo apt-get update
+sudo apt-get install -y python3.12 python3.12-venv python3-pip
+
+# Verify installation
+python3.12 --version
+```
+
+**Option C: Use pyenv (alternative method):**
+```bash
+# Install pyenv
+curl https://pyenv.run | bash
+
+# Add to ~/.bashrc or ~/.zshrc
+echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+source ~/.bashrc
+
+# Install Python 3.12
+pyenv install 3.12.8
+pyenv global 3.12.8
+
+# Verify
+python --version  # Should show Python 3.12.8
+```
+
+**Arch Linux:**
+```bash
+# Python 3.12 may require pyenv or AUR
+yay -S python312  # Using AUR helper
+# OR build from source
+```
+
+**macOS:**
+```bash
+# Install Python 3.12 via Homebrew
+brew install python@3.12
+```
+
+### Step 2: Install System Dependencies
 
 **Debian/Ubuntu/Kali:**
 ```bash
-# Required
-sudo apt-get update
-sudo apt-get install -y python3.12 python3-pip python3-venv nmap exploitdb
+# Required tools
+sudo apt-get install -y nmap exploitdb
+
+```bash
+# Required tools
+sudo apt-get install -y nmap exploitdb
 
 # Optional - for Active Directory / LDAP enumeration
 sudo apt-get install -y ldap-utils dnsutils samba-common-bin
@@ -53,8 +117,8 @@ sudo apt-get install -y enum4linux-ng
 
 **Arch Linux:**
 ```bash
-# Required
-sudo pacman -S python python-pip nmap exploitdb
+# Required tools
+sudo pacman -S nmap exploitdb
 
 # Optional - for Active Directory / LDAP enumeration
 sudo pacman -S openldap bind samba
@@ -62,14 +126,14 @@ sudo pacman -S openldap bind samba
 
 **macOS:**
 ```bash
-# Required
-brew install python@3.12 nmap exploitdb
+# Required tools
+brew install nmap exploitdb
 
 # Optional - for Active Directory / LDAP enumeration
 brew install openldap bind samba
 ```
 
-### Install VectorProbe
+### Step 3: Install VectorProbe
 
 1. Clone the repository:
    ```bash
@@ -77,21 +141,40 @@ brew install openldap bind samba
    cd ProjectFinalEthical
    ```
 
-2. Create a virtual environment using Python 3.12:
+2. **Create a virtual environment using Python 3.12:**
    ```bash
    python3.12 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install all required Python dependencies from `requirements.txt`:
+3. **Install Python dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Verify installation:
+4. **Verify installation:**
    ```bash
    python src/main.py --help
    ```
+   
+   You should see the VectorProbe banner and help menu.
+
+### Running with Sudo (Required for Network Scanning)
+
+Since network scanning requires raw socket access, you need sudo. When using sudo with a virtual environment, use one of these methods:
+
+**Method 1: Activate venv first, then use sudo with full path**
+```bash
+source venv/bin/activate
+sudo $(which python) src/main.py -t <target>
+```
+
+**Method 2: Use the wrapper script (recommended)**
+```bash
+sudo ./vectorprobe.sh -t <target>
+```
+
+The wrapper automatically uses the venv Python interpreter.
 
 ## Usage
 
