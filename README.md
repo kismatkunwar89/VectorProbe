@@ -56,8 +56,8 @@ sudo apt install -y ldap-utils dnsutils samba-common-bin enum4linux-ng
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd ProjectFinalEthical
+   git clone https://github.com/kismatkunwar89/VectorProbe.git
+   cd VectorProbe
    ```
 
 2. **Create a virtual environment:**
