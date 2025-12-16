@@ -1,13 +1,6 @@
+import os
 import socket
 import ipaddress
-
-def is_valid_ip(ip):
-    """Check if the provided IP address is valid."""
-    try:
-        ipaddress.ip_address(ip)
-        return True
-    except ValueError:
-        return False
 
 def get_hostname(ip):
     """Return the hostname for a given IP address."""

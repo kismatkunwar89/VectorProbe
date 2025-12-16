@@ -9,14 +9,6 @@ def resolve_hostname(hostname):
         print(f"Error resolving hostname {hostname}: {e}")
         return None
 
-def is_valid_ip(ip):
-    """Check if the provided string is a valid IPv4 address."""
-    try:
-        socket.inet_pton(socket.AF_INET, ip)
-        return True
-    except socket.error:
-        return False
-
 def get_dns_info(domain):
     """Get DNS information for a given domain."""
     try:

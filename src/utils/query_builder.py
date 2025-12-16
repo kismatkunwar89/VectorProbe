@@ -9,9 +9,11 @@ TOKEN_PATTERN = re.compile(r'[A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*')
 VERSION_PATTERN = re.compile(r'\d+(?:\.\d+)+')
 
 # Generic terms that do not help Searchsploit find specific software.
-GENERIC_TERMS = {
+# Merged from GENERIC_TERMS and STOP_WORDS for single source of truth.
+SEARCHSPLOIT_FILTER_TERMS = {
     'client', 'default', 'domain', 'http', 'https', 'open', 'port',
-    'protocol', 'server', 'service', 'services', 'tcp', 'udp', 'unknown'
+    'protocol', 'server', 'service', 'services', 'ssl', 'tls',
+    'tcp', 'udp', 'unknown'
 }
 
 
@@ -43,7 +45,7 @@ def build_searchsploit_query(
                 continue
             if len(token) <= 2:
                 continue
-            if token in GENERIC_TERMS:
+            if token in SEARCHSPLOIT_FILTER_TERMS:
                 continue
             if VERSION_PATTERN.fullmatch(token):
                 continue

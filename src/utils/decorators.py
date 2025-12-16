@@ -11,8 +11,9 @@ This module demonstrates Python decorator patterns for:
 import time
 import logging
 import functools
-import ipaddress
 from typing import Callable, Any
+
+from utils.validation import is_valid_ip
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,7 @@ def validate_ip(func: Callable) -> Callable:
         # Get the IP argument (assuming it's the first arg after self)
         if len(args) > 1:
             ip = args[1]
-            try:
-                ipaddress.ip_address(ip)
-            except ValueError:
+            if not is_valid_ip(ip):
                 raise ValueError(f"Invalid IP address: {ip}")
 
         return func(*args, **kwargs)

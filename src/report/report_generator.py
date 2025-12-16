@@ -1,4 +1,3 @@
-import os
 from collections import Counter
 from datetime import datetime
 

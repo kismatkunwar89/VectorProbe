@@ -13,6 +13,17 @@ VectorProbe is a comprehensive network enumeration and security assessment tool 
 - **Markdown Reports**: Clean, structured reporting in Markdown format
 - **Active Directory Enumeration**: LDAP and domain information enumeration against Windows Domain Controllers
 
+### Active Directory Enumeration Capabilities
+
+VectorProbe performs comprehensive unauthenticated Active Directory enumeration on detected Domain Controllers:
+
+- **LDAP Base DSE Queries**: Domain structure, naming contexts, functional levels, and forest configuration
+- **SMB Security Mode Detection**: Signing requirements, authentication levels, and security posture
+- **NetBIOS Role Identification**: Domain Controller identification via NetBIOS type codes
+- **DNS SRV Record Discovery**: LDAP and Kerberos service record enumeration
+- **Global Catalog Detection**: Global Catalog server availability and port detection
+
+**Limitations**: AD enumeration is performed using unauthenticated methods only. This provides domain structure and DC identification but does not include user/group enumeration or password policies (which require credentials). See [limitations.md](limitations.md) for complete details.
 
 ## Installation
 
