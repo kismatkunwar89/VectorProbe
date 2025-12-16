@@ -20,12 +20,12 @@
 - **NetBIOS Enumeration**: Handler and parser using nmblookup
 - **AD Enumeration**: SMB security mode parsing, NetBIOS role detection, report section
 - **Data Models**: HostResult and ServiceResult with exploit storage
-- **Testing**: pytest framework setup, fixtures, 205 unit tests
 - **UX**: ASCII banner, logging configuration, command output formatting
 
 ## Both
 
 - **Report Generator**: Markdown output, UTC timestamps, verified/unverified sections
+- **Testing**: pytest framework setup, fixtures, 205 unit tests
 
 ## outofscope
 
