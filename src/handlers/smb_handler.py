@@ -4,20 +4,12 @@ SMB Enumeration Handler
 Wraps enum4linux-ng to enumerate SMB shares, users, groups, and OS info.
 """
 
-import subprocess
-import shutil
-from dataclasses import dataclass
 from typing import Optional
+
+from models.command_result import CommandResult
 from utils.decorators import validate_ip, timing, retry
-
-
-@dataclass
-class CommandResult:
-    """Stores result of an SMB enumeration command."""
-    command: str
-    stdout: str
-    stderr: str
-    exit_code: int
+from utils.shell import execute_command
+from utils.tool_checker import ensure_tool_exists
 
 
 class SMBHandler:
@@ -32,17 +24,6 @@ class SMBHandler:
         """
         self.timeout_sec = timeout_sec
 
-    def _ensure_enum4linux_exists(self):
-        """Ensure enum4linux-ng is installed and accessible."""
-        tools = ["enum4linux-ng", "enum4linux"]
-        for tool in tools:
-            if shutil.which(tool) is not None:
-                return tool
-        raise RuntimeError(
-            "enum4linux-ng or enum4linux not found in PATH. "
-            "Install with: pip install enum4linux-ng or apt install enum4linux"
-        )
-
     def _run(self, cmd: list) -> CommandResult:
         """
         Execute a command and return the result.
@@ -53,33 +34,7 @@ class SMBHandler:
         Returns:
             CommandResult with stdout, stderr, exit_code
         """
-        try:
-            completed = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_sec,
-            )
-            return CommandResult(
-                command=" ".join(cmd),
-                stdout=completed.stdout or "",
-                stderr=completed.stderr or "",
-                exit_code=completed.returncode,
-            )
-        except subprocess.TimeoutExpired:
-            return CommandResult(
-                command=" ".join(cmd),
-                stdout="",
-                stderr=f"Timeout after {self.timeout_sec} seconds",
-                exit_code=-1,
-            )
-        except Exception as e:
-            return CommandResult(
-                command=" ".join(cmd),
-                stdout="",
-                stderr=str(e),
-                exit_code=-1,
-            )
+        return execute_command(cmd, timeout=self.timeout_sec)
 
     @validate_ip
     @timing
@@ -93,7 +48,11 @@ class SMBHandler:
         Returns:
             CommandResult with enum4linux-ng output
         """
-        tool = self._ensure_enum4linux_exists()
+        tool = ensure_tool_exists(
+            "enum4linux-ng",
+            alternatives=["enum4linux"],
+            install_hint="Install with: pip install enum4linux-ng or apt install enum4linux"
+        )
 
         # Run: enum4linux-ng -A <target>
         # -A: All simple enumeration (users, shares, groups, OS info)

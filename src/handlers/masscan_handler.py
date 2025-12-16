@@ -13,28 +13,12 @@ NOTE:
 
 from __future__ import annotations
 
-import shutil
-import subprocess
-from dataclasses import dataclass
 from typing import List
 
+from models.command_result import CommandResult
 from utils.decorators import timing, retry
-
-
-@dataclass
-class CommandResult:
-    """
-    Holds results of a command execution.
-
-    command   : exact command string that was run
-    stdout    : normal output from command
-    stderr    : error output from command
-    exit_code : return code (0 usually means success)
-    """
-    command: str
-    stdout: str
-    stderr: str
-    exit_code: int
+from utils.shell import execute_command
+from utils.tool_checker import ensure_tool_exists
 
 
 class MasscanHandler:
@@ -62,21 +46,6 @@ class MasscanHandler:
     # ---------------------------
     # Internal helpers
     # ---------------------------
-    def _ensure_masscan_exists(self) -> None:
-        """
-        Checks if masscan is available in PATH.
-        If not, raise a clear error.
-
-        Raises:
-            RuntimeError: If masscan is not found in PATH
-        """
-        if shutil.which("masscan") is None:
-            raise RuntimeError(
-                "Masscan is not installed or not in PATH. "
-                "Install masscan and ensure it is accessible from terminal. "
-                "Visit: https://github.com/robertdavidgraham/masscan"
-            )
-
     def _run(self, cmd: List[str]) -> CommandResult:
         """
         Runs a command and captures output safely.
@@ -87,42 +56,11 @@ class MasscanHandler:
         Returns:
             CommandResult: Contains command, stdout, stderr, and exit code
         """
-        self._ensure_masscan_exists()
-
-        command_str = " ".join(cmd)
-
-        try:
-            completed = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_sec
-            )
-
-            return CommandResult(
-                command=command_str,
-                stdout=completed.stdout or "",
-                stderr=completed.stderr or "",
-                exit_code=completed.returncode
-            )
-
-        except subprocess.TimeoutExpired as e:
-            # If masscan takes too long, we still return whatever we have.
-            return CommandResult(
-                command=command_str,
-                stdout=(e.stdout or ""),
-                stderr=(e.stderr or "") + "\n[!] Timeout expired.",
-                exit_code=-1
-            )
-
-        except Exception as e:
-            # Any other unexpected error
-            return CommandResult(
-                command=command_str,
-                stdout="",
-                stderr=f"[!] Exception running command: {e}",
-                exit_code=-1
-            )
+        ensure_tool_exists(
+            "masscan",
+            install_hint="Visit: https://github.com/robertdavidgraham/masscan"
+        )
+        return execute_command(cmd, timeout=self.timeout_sec)
 
     # ---------------------------
     # Public scan methods

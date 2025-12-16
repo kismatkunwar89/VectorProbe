@@ -17,29 +17,12 @@ NOTE:
 
 from __future__ import annotations
 
-import shutil
-import subprocess
-from dataclasses import dataclass
 from typing import List, Optional
 
-# Import custom decorators
+from models.command_result import CommandResult
 from utils.decorators import validate_ip, timing, retry
-
-
-@dataclass
-class CommandResult:
-    """
-    Holds results of a command execution.
-
-    command   : exact command string that was run
-    stdout    : normal output from command
-    stderr    : error output from command
-    exit_code : return code (0 usually means success)
-    """
-    command: str
-    stdout: str
-    stderr: str
-    exit_code: int
+from utils.shell import execute_command
+from utils.tool_checker import ensure_tool_exists
 
 
 class NmapHandler:
@@ -58,57 +41,15 @@ class NmapHandler:
     # ---------------------------
     # Internal helpers
     # ---------------------------
-    def _ensure_nmap_exists(self) -> None:
-        """
-        Checks if nmap is available in PATH.
-        If not, raise a clear error.
-        """
-        if shutil.which("nmap") is None:
-            raise RuntimeError(
-                "Nmap is not installed or not in PATH. "
-                "Install nmap and ensure it is accessible from terminal."
-            )
-
     def _run(self, cmd: List[str]) -> CommandResult:
         """
         Runs a command and captures output safely.
         """
-        self._ensure_nmap_exists()
-
-        command_str = " ".join(cmd)
-
-        try:
-            completed = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_sec
-            )
-
-            return CommandResult(
-                command=command_str,
-                stdout=completed.stdout or "",
-                stderr=completed.stderr or "",
-                exit_code=completed.returncode
-            )
-
-        except subprocess.TimeoutExpired as e:
-            # If nmap takes too long, we still return whatever we have.
-            return CommandResult(
-                command=command_str,
-                stdout=(e.stdout or ""),
-                stderr=(e.stderr or "") + "\n[!] Timeout expired.",
-                exit_code=-1
-            )
-
-        except Exception as e:
-            # Any other unexpected error
-            return CommandResult(
-                command=command_str,
-                stdout="",
-                stderr=f"[!] Exception running command: {e}",
-                exit_code=-1
-            )
+        ensure_tool_exists(
+            "nmap",
+            install_hint="Install with: sudo apt install nmap"
+        )
+        return execute_command(cmd, timeout=self.timeout_sec)
 
     # ---------------------------
     # Public scan methods

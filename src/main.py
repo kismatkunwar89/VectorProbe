@@ -448,6 +448,7 @@ def main():
                 break
 
     if netbios_hosts:
+        nmblookup_failure_recorded = False  # Track if failure has been recorded
         logger.info(
             f"[*] {len(netbios_hosts)} hosts with NetBIOS (port 139) detected")
         for ip in netbios_hosts:
