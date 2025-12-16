@@ -2,11 +2,10 @@
 
 ## Overview
 
-VectorProbe is a comprehensive network enumeration and security assessment tool designed for ethical penetration testing and security assessments. It integrates Masscan, Nmap, Searchsploit, and enum4linux-ng to provide automated network reconnaissance with vulnerability correlation.
+VectorProbe is a comprehensive network enumeration and security assessment tool designed for ethical penetration testing and security assessments. It integrates Nmap, Searchsploit, and enum4linux-ng to provide automated network reconnaissance with vulnerability correlation.
 
 ## Features
 
-- **Fast Network Discovery**: Masscan integration for rapid port scanning
 - **Deep Service Enumeration**: Nmap integration for detailed service detection and OS fingerprinting
 - **Vulnerability Correlation**: Automatic searchsploit integration for exploit identification
 - **SMB Enumeration**: Automated Windows/Samba enumeration with enum4linux-ng
@@ -35,7 +34,6 @@ VectorProbe performs comprehensive unauthenticated Active Directory enumeration 
 - searchsploit (from the `exploitdb` package)
 
 **Optional Tools (for enhanced functionality):**
-- masscan (for `--fast-scan` mode)
 - enum4linux-ng (for SMB enumeration)
 
 ### Install System Dependencies
@@ -45,9 +43,6 @@ VectorProbe performs comprehensive unauthenticated Active Directory enumeration 
 # Required
 sudo apt-get update
 sudo apt-get install -y python3.12 python3-pip python3-venv nmap exploitdb
-
-# Optional - for fast scanning
-sudo apt-get install -y masscan
 
 # Optional - for Active Directory / LDAP enumeration
 sudo apt-get install -y ldap-utils dnsutils samba-common-bin
@@ -63,9 +58,6 @@ sudo pacman -S python python-pip nmap exploitdb
 
 # Optional - for Active Directory / LDAP enumeration
 sudo pacman -S openldap bind samba
-
-# Optional
-sudo pacman -S masscan
 ```
 
 **macOS:**
@@ -75,9 +67,6 @@ brew install python@3.12 nmap exploitdb
 
 # Optional - for Active Directory / LDAP enumeration
 brew install openldap bind samba
-
-# Optional
-brew install masscan
 ```
 
 ### Install VectorProbe
@@ -120,13 +109,6 @@ Scan an entire subnet:
 python src/main.py -t 192.168.1.0/24
 ```
 
-### Fast Scan Mode
-
-Use masscan for initial discovery, then nmap for deep scanning:
-```bash
-sudo python src/main.py -t 192.168.1.0/24 --fast-scan
-```
-
 ### Multiple Targets
 
 Scan multiple targets (comma-separated):
@@ -165,7 +147,7 @@ python src/main.py -t <DC_IP> -o ad_enumeration_report.md
 ## Command-Line Options
 
 ```
-usage: VectorProbe [-h] -t TARGETS [-x EXCLUDE] [-o OUTPUT] [--no-prompt] [--fast-scan]
+usage: VectorProbe [-h] -t TARGETS [-x EXCLUDE] [-o OUTPUT] [--no-prompt]
 
 options:
   -t TARGETS, --targets TARGETS
@@ -175,27 +157,22 @@ options:
   -o OUTPUT, --output OUTPUT
                         Output report path/filename.
   --no-prompt           Disable interactive prompts.
-  --fast-scan           Use masscan for fast initial host discovery.
 ```
 
 ## Workflow
 
-1. **Stage 1 (Optional): Fast Discovery** - Masscan identifies live hosts
-2. **Stage 2: Deep Scanning** - Nmap performs service detection and OS fingerprinting
-3. **Stage 3: Vulnerability Correlation** - Searchsploit queries for known exploits
-4. **Stage 4: SMB Enumeration** - Auto-runs enum4linux-ng when SMB detected
+1. **Stage 1: Deep Scanning** - Nmap performs service detection and OS fingerprinting
+2. **Stage 2: Vulnerability Correlation** - Searchsploit queries for known exploits
+3. **Stage 3: SMB Enumeration** - Auto-runs enum4linux-ng when SMB detected
+4. **Stage 4: Active Directory Enumeration** - LDAP and domain enumeration when DC detected
 5. **Stage 5: Report Generation** - Creates comprehensive Markdown report
 
 ## Troubleshooting
 
-### "Masscan is not installed"
-Install masscan: `sudo apt-get install masscan`
-Or run without `--fast-scan` flag (uses nmap only)
-
 ### "Permission denied" errors
 Use `sudo` when scanning requires raw sockets:
 ```bash
-sudo python src/main.py -t 192.168.1.0/24 --fast-scan
+sudo python src/main.py -t 192.168.1.0/24
 ```
 
 ### "Searchsploit not found"

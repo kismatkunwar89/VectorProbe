@@ -7,10 +7,9 @@
   - Set up the initial project structure, modular design, and virtual environment.
   - Designed the main orchestration workflow in `main.py`.
 - **CLI & Input Handling:**
-  - Implemented the `argparse` CLI, including all flags (`--fast-scan`, `-o`, `-x`).
+  - Implemented the `argparse` CLI, including all flags (`-o`, `-x`, `--no-prompt`).
   - Developed the target and exclusion parsing logic.
 - **Scanning & Enumeration:**
-  - Implemented the `masscan` handler and parser for high-speed discovery.
   - Enhanced the `nmap` and `smb` handlers and parsers.
   - Implemented the main orchestration logic connecting all scanning stages.
 - **Active Directory Enumeration (Tasks 6.5.1-6.5.11):**
