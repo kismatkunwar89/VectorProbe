@@ -135,10 +135,9 @@ brew install openldap bind samba
 
 ### Running with Sudo (Required for Network Scanning)
 
-Since network scanning requires raw socket access, you need sudo:
+Network scanning requires raw socket access:
 ```bash
-source venv/bin/activate
-sudo $(which python) src/main.py -t <target>
+sudo python src/main.py -t <target>
 ```
 
 ## Usage
