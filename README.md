@@ -42,7 +42,6 @@ VectorProbe requires Python **3.12** or newer. Kali Linux 2024.4+ includes Pytho
 
 ```bash
 python3 --version  # Should show 3.12.x or newer
-sudo apt install -y python3-venv  # Install venv support
 ```
 
 ### Step 2: Install System Dependencies
